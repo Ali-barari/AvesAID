@@ -10,6 +10,7 @@ serial_config:
       port_config_param:
         name: SEP_PORT1_CFG
         group: Septentrio
+        default: GPS1
       label: GPS Port
 
 parameters:
@@ -70,7 +71,7 @@ parameters:
         type: float
         decimal: 3
         default: 0
-        min: -360
+        min: 0
         max: 360
         unit: deg
         reboot_required: true
@@ -103,8 +104,7 @@ parameters:
         description:
           short: Log GPS communication data
           long: |
-            Log raw communication between the driver and connected receivers.
-            For example, "To receiver" will log all commands and corrections sent by the driver to the receiver.
+            Dump raw communication data from and to the connected receiver to the log file.
         type: enum
         default: 0
         min: 0
