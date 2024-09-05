@@ -1513,7 +1513,6 @@ Commander::handle_command(const vehicle_command_s &cmd)
 	case vehicle_command_s::VEHICLE_CMD_DO_WINCH:
 	case vehicle_command_s::VEHICLE_CMD_DO_GRIPPER:
 	case vehicle_command_s::VEHICLE_CMD_EXTERNAL_POSITION_ESTIMATE:
-	case vehicle_command_s::VEHICLE_CMD_REQUEST_CAMERA_INFORMATION:
 		/* ignore commands that are handled by other parts of the system */
 		break;
 
