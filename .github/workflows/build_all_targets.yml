@@ -7,14 +7,16 @@ name: Build all targets
 
 on:
   push:
+    tags:
+      - 'v*'
     branches:
-    - 'main'
-    - 'stable'
-    - 'beta'
-    - 'release/*'
+      - 'main'
+      - 'stable'
+      - 'beta'
+      - 'release/*'
   pull_request:
     branches:
-    - '*'
+      - '*'
 
 jobs:
   group_targets:
@@ -44,7 +46,15 @@ jobs:
     runs-on: [runs-on,runner=8cpu-linux-x64,image=ubuntu22-full-x64,"run-id=${{ github.run_id }}"]
     needs: group_targets
     strategy:
-      matrix: ${{ fromJson(needs.group_targets.outputs.matrix) }}
+      # matrix: ${{ fromJson(needs.group_targets.outputs.matrix) }}
+      # Debugging Matrix
+      matrix:
+        include:
+          - container: px4io/px4-dev-nuttx-focal:2022-08-12
+            targets: 'px4_fmu-v6x_rover,px4_fmu-v6x_bootloader,px4_fmu-v6x_default,px4_fmu-v6x_multicopter,px4_fmu-v6x_zenoh,px4_fmu-v6c_rover,px4_fmu-v6c_bootloader,px4_fmu-v6c_default,px4_fmu-v5x_rover,px4_fmu-v5x_default'
+            arch: 'nuttx'
+            group: 'nuttx-px4-0'
+            len: 10
     container:
       image: ${{ matrix.container }}
     steps:
@@ -88,3 +98,19 @@ jobs:
 
       - name: ccache post-run
         run: ccache -s
+
+  release:
+    name: Create Release and Upload Artifacts
+    runs-on: [runs-on,runner=8cpu-linux-x64,image=ubuntu22-full-x64,"run-id=${{ github.run_id }}"]
+    needs: setup
+    # if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix: ${{ fromJson(needs.group_targets.outputs.matrix) }}
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: px4_${{matrix.group}}_build_artifacts
+
+      - name: Debug with tmate session
+        uses: mxschmitt/action-tmate@v3
