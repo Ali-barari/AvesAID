@@ -87,6 +87,8 @@ private:
 	 */
 	void parameters_updated();
 
+	float throttle_curve(float throttle_stick_input);
+
 	void updateActuatorControlsStatus(const vehicle_torque_setpoint_s &vehicle_torque_setpoint, float dt);
 
 	RateControl _rate_control; ///< class for rate control calculations
@@ -159,6 +161,16 @@ private:
 		(ParamFloat<px4::params::MC_ACRO_SUPEXPO>) _param_mc_acro_supexpo,		/**< superexpo stick curve shape (roll & pitch) */
 		(ParamFloat<px4::params::MC_ACRO_SUPEXPOY>) _param_mc_acro_supexpoy,		/**< superexpo stick curve shape (yaw) */
 
-		(ParamBool<px4::params::MC_BAT_SCALE_EN>) _param_mc_bat_scale_en
+		(ParamBool<px4::params::MC_BAT_SCALE_EN>) _param_mc_bat_scale_en,
+
+		/* Stabilized mode params */
+		(ParamFloat<px4::params::MPC_MAN_TILT_MAX>) _param_mpc_man_tilt_max,    /**< maximum tilt allowed for manual flight */
+		(ParamFloat<px4::params::MPC_MAN_Y_MAX>)    _param_mpc_man_y_max,       /**< scaling factor from stick to yaw rate */
+		(ParamFloat<px4::params::MPC_MANTHR_MIN>)   _param_mpc_manthr_min,      /**< minimum throttle for stabilized */
+		(ParamFloat<px4::params::MPC_THR_MAX>)      _param_mpc_thr_max,         /**< maximum throttle for stabilized */
+		(ParamFloat<px4::params::MPC_THR_HOVER>)    _param_mpc_thr_hover,       /**< throttle at stationary hover */
+		(ParamInt<px4::params::MPC_THR_CURVE>)      _param_mpc_thr_curve,       /**< throttle curve behavior */
+
+		(ParamFloat<px4::params::COM_SPOOLUP_TIME>) _param_com_spoolup_time
 	)
 };
