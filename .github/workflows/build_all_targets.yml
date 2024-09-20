@@ -102,7 +102,7 @@ jobs:
   release:
     name: Create Release and Upload Artifacts
     runs-on: [runs-on,runner=8cpu-linux-x64,image=ubuntu22-full-x64,"run-id=${{ github.run_id }}"]
-    needs: setup, group_targets
+    needs: [setup, group_targets]
     # if: startsWith(github.ref, 'refs/tags/v')
     strategy:
       matrix: ${{ fromJson(needs.group_targets.outputs.matrix) }}
