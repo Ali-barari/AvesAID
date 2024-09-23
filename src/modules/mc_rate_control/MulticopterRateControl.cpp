@@ -98,7 +98,7 @@ MulticopterRateControl::parameters_updated()
 }
 
 float
-MulticopterAttitudeControl::throttle_curve(float throttle_stick_input)
+MulticopterRateControl::throttle_curve(float throttle_stick_input)
 {
 	float thrust = 0.f;
 
@@ -182,7 +182,7 @@ MulticopterRateControl::Run()
 
 				_rates_setpoint = man_rate_sp.emult(_acro_rate_max);
 				// _thrust_setpoint(2) = -(manual_control_setpoint.throttle + 1.f) * .5f;
-				_thrust_setpoint(2) = -throttle_curve(manual_control_setpoint.throttle);
+				_thrust_setpoint(2) = -throttle_curve((manual_control_setpoint.throttle + 1.f) * .5f);
 				_thrust_setpoint(0) = _thrust_setpoint(1) = 0.f;
 
 				// publish rate setpoint
