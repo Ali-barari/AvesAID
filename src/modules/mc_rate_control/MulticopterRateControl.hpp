@@ -59,6 +59,8 @@
 #include <uORB/topics/vehicle_status.h>
 #include <uORB/topics/vehicle_thrust_setpoint.h>
 #include <uORB/topics/vehicle_torque_setpoint.h>
+#include <lib/slew_rate/SlewRate.hpp>
+
 
 using namespace time_literals;
 
@@ -116,6 +118,9 @@ private:
 
 	bool _landed{true};
 	bool _maybe_landed{true};
+
+	SlewRate<float> _manual_throttle_minimum{0.f}; ///< 0 when landed and ramped to MPC_MANTHR_MIN in air
+	SlewRate<float> _manual_throttle_maximum{0.f}; ///< 0 when disarmed ramped to 1 when spooled up
 
 	hrt_abstime _last_run{0};
 
