@@ -58,6 +58,12 @@
 #include <uORB/topics/estimator_aid_source1d.h>
 #include <uORB/topics/estimator_aid_source2d.h>
 #include <uORB/topics/estimator_aid_source3d.h>
+#include <uORB/topics/vehicle_status.h>
+#include <uORB/Subscription.hpp>
+#include <uORB/SubscriptionCallback.hpp>
+#include <uORB/topics/vehicle_command.h>
+#include <lib/systemlib/mavlink_log.h>
+#include <uORB/topics/vehicle_control_mode.h>
 
 #include "aid_sources/ZeroGyroUpdate.hpp"
 #include "aid_sources/ZeroVelocityUpdate.hpp"
@@ -85,6 +91,14 @@ public:
 	bool init(uint64_t timestamp) override;
 
 	void print_status();
+
+	void log_critical_ev(const char* message_ev);
+	void log_critical_baro(const char* message_baro);
+
+	uORB::SubscriptionData<vehicle_status_s> _vehicle_status_sub{ORB_ID(vehicle_status)};
+
+	orb_advert_t _mavlink_log_pub{nullptr};
+
 
 	// should be called every time new data is pushed into the filter
 	bool update();

@@ -38,6 +38,11 @@
 
 #include "ekf.h"
 
+#ifndef MODULE_NAME
+#define MODULE_NAME "ev_height_control"
+#endif
+
+
 void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSample &ev_sample,
 				const bool common_starting_conditions_passing, const bool ev_reset, const bool quality_sufficient,
 				estimator_aid_source1d_s &aid_src)
@@ -200,3 +205,109 @@ void Ekf::stopEvHgtFusion()
 		_control_status.flags.ev_hgt = false;
 	}
 }
+
+
+// Update the subscriptions
+// 	_vehicle_status_sub.update();
+
+// 	if (_control_status.flags.ev_hgt) {
+// 		if (_vehicle_status_sub.get().nav_state != vehicle_status_s::NAVIGATION_STATE_ALTCTL){
+// 			if (continuing_conditions_passing) {
+// 				log_critical_ev("continue EV");
+
+// 				if (ev_reset) {
+
+// 					if (quality_sufficient) {
+// 						ECL_INFO("reset to %s", AID_SRC_NAME);
+
+// 						if (_height_sensor_ref == HeightSensor::EV) {
+// 							_information_events.flags.reset_hgt_to_ev = true;
+// 							resetVerticalPositionTo(measurement, measurement_var);
+// 							bias_est.reset();
+
+// 						} else {
+// 							bias_est.setBias(-_state.pos(2) + measurement);
+// 						}
+
+// 						aid_src.time_last_fuse = _time_delayed_us;
+
+// 					} else {
+// 						// EV has reset, but quality isn't sufficient
+// 						// we have no choice but to stop EV and try to resume once quality is acceptable
+// 						stopEvHgtFusion();
+// 						return;
+// 					}
+
+// 				} else if (quality_sufficient) {
+// 					fuseVerticalPosition(aid_src);
+
+// 				} else {
+// 					aid_src.innovation_rejected = true;
+// 				}
+
+// 				const bool is_fusion_failing = isTimedOut(aid_src.time_last_fuse, _params.hgt_fusion_timeout_max);
+
+// 				if (isHeightResetRequired() && quality_sufficient && (_height_sensor_ref == HeightSensor::EV)) {
+// 					// All height sources are failing
+// 					ECL_WARN("%s fusion reset required, all height sources failing", AID_SRC_NAME);
+// 					log_critical_ev("fusion reset required, all height sources failing\t");
+// 					_information_events.flags.reset_hgt_to_ev = true;
+// 					resetVerticalPositionTo(measurement - bias_est.getBias(), measurement_var);
+// 					bias_est.setBias(-_state.pos(2) + measurement);
+
+// 					aid_src.time_last_fuse = _time_delayed_us;
+
+// 				} else if (is_fusion_failing) {
+// 					// A reset did not fix the issue but all the starting checks are not passing
+// 					// This could be a temporary issue, stop the fusion without declaring the sensor faulty
+// 					ECL_WARN("stopping %s, fusion failing", AID_SRC_NAME);
+// 					log_critical_ev("stopping  fusion failing\t");
+// 					stopEvHgtFusion();
+// 				}
+
+// 			} else {
+// 				// Stop fusion but do not declare it faulty
+// 				ECL_WARN("stopping %s fusion, continuing conditions failing", AID_SRC_NAME);
+// 				log_critical_ev("stopping fusion, continuing conditions failing\t");
+// 				stopEvHgtFusion();
+// 			}
+// 		}
+
+// 	} else {
+// 		if (_vehicle_status_sub.get().nav_state != vehicle_status_s::NAVIGATION_STATE_ALTCTL){
+// 			log_critical_ev("not in altitude hold\t");
+// 			if (starting_conditions_passing) {
+// 				log_critical_ev("Starting EV");
+// 				// activate fusion, only reset if necessary
+// 				if (_params.height_sensor_ref == static_cast<int32_t>(HeightSensor::EV)) {
+// 					ECL_INFO("starting %s fusion, resetting state", AID_SRC_NAME);
+// 					log_critical_ev("starting fusion, resetting state\t");
+// 					_information_events.flags.reset_hgt_to_ev = true;
+// 					resetVerticalPositionTo(measurement, measurement_var);
+
+// 					_height_sensor_ref = HeightSensor::EV;
+// 					bias_est.reset();
+
+// 				} else {
+// 					ECL_INFO("starting %s fusion", AID_SRC_NAME);
+// 					log_critical_ev("starting fusion, resetting state\t");
+// 					bias_est.setBias(-_state.pos(2) + measurement);
+// 				}
+
+// 				aid_src.time_last_fuse = _time_delayed_us;
+// 				bias_est.setFusionActive();
+// 				_control_status.flags.ev_hgt = true;
+// 			}
+// 		}
+// 	}
+// }
+// static const char* last_message_ev = nullptr;
+
+// 	// Helper function to log a message only when it's new
+// void Ekf::log_critical_ev(const char* message_ev) {
+// 	if (last_message_ev == nullptr || strcmp(last_message_ev, message_ev) != 0) {
+// 		mavlink_log_critical(&_mavlink_log_pub, "%s", message_ev);
+// 		last_message_ev = message_ev;  // Update the last_message_ev
+// 	}
+// }
+
