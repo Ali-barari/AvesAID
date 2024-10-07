@@ -38,6 +38,11 @@
 
 #include "ekf.h"
 
+
+#ifndef MODULE_NAME
+#define MODULE_NAME "baro_height_control"
+#endif
+
 void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 {
 	static constexpr const char *HGT_SRC_NAME = "baro";
@@ -121,7 +126,7 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 		if (_control_status.flags.baro_hgt) {
 
 			if (continuing_conditions_passing) {
-
+				log_critical_baro("continue baro");
 				fuseVerticalPosition(aid_src);
 
 				const bool is_fusion_failing = isTimedOut(aid_src.time_last_fuse, _params.hgt_fusion_timeout_max);
@@ -158,6 +163,7 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 
 		} else {
 			if (starting_conditions_passing) {
+				log_critical_baro("Start baro");
 				if (_params.height_sensor_ref == static_cast<int32_t>(HeightSensor::BARO)) {
 					ECL_INFO("starting %s height fusion, resetting height", HGT_SRC_NAME);
 					_height_sensor_ref = HeightSensor::BARO;
@@ -182,6 +188,15 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 		// No data anymore. Stop until it comes back.
 		ECL_WARN("stopping %s height fusion, no data", HGT_SRC_NAME);
 		stopBaroHgtFusion();
+	}
+}
+static const char* last_message_baro = nullptr;
+
+	// Helper function to log a message only when it's new
+void Ekf::log_critical_baro(const char* message_baro) {
+	if (last_message_baro == nullptr || strcmp(last_message_baro, message_baro) != 0) {
+		mavlink_log_critical(&_mavlink_log_pub, "%s", message_baro);
+		last_message_baro = message_baro;  // Update the last_message_baro
 	}
 }
 
