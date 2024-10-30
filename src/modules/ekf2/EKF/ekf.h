@@ -92,12 +92,12 @@ public:
 
 	void print_status();
 
-	void log_critical_ev(const char* message_ev);
-	void log_critical_baro(const char* message_baro);
+	void log_info_ev(const char* message_ev); // AvesAID: updating the height reference
+	void log_info_baro(const char* message_baro); // AvesAID: Status text to QGC
 
-	uORB::SubscriptionData<vehicle_status_s> _vehicle_status_sub{ORB_ID(vehicle_status)};
+	uORB::SubscriptionData<vehicle_status_s> _vehicle_status_sub{ORB_ID(vehicle_status)}; // AvesAID: updating the height reference
 
-	orb_advert_t _mavlink_log_pub{nullptr};
+	orb_advert_t _mavlink_log_pub{nullptr}; // AvesAID: updating the height reference
 
 
 	// should be called every time new data is pushed into the filter
@@ -1169,6 +1169,10 @@ private:
 	void resetQuatStateYaw(float yaw, float yaw_variance);
 
 	HeightSensor _height_sensor_ref{HeightSensor::UNKNOWN};
+	HeightSensor _prev_height_ref{HeightSensor::UNKNOWN};
+	HeightSensor _height_ref{HeightSensor::UNKNOWN};
+
+
 	PositionSensor _position_sensor_ref{PositionSensor::GNSS};
 
 #if defined(CONFIG_EKF2_EXTERNAL_VISION)

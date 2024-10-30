@@ -1711,10 +1711,10 @@ Mavlink::configure_streams_to_default(const char *configure_single_stream)
 
 	case MAVLINK_MODE_MINIMAL:
 		configure_stream_local("ALTITUDE", 0.5f);
-		configure_stream_local("ATTITUDE", 10.0f);
+		// configure_stream_local("ATTITUDE", 10.0f); // AvesAID: reducing the rate of messages going to firmware
 		configure_stream_local("EXTENDED_SYS_STATE", 0.1f);
-		configure_stream_local("GLOBAL_POSITION_INT", 5.0f);
-		configure_stream_local("GPS_RAW_INT", 0.5f);
+		// configure_stream_local("GLOBAL_POSITION_INT", 5.0f); // AvesAID: reducing the rate of messages going to firmware
+		// configure_stream_local("GPS_RAW_INT", 0.5f); // AvesAID: reducing the rate of messages going to firmware
 		configure_stream_local("HOME_POSITION", 0.1f);
 		configure_stream_local("NAMED_VALUE_FLOAT", 1.0f);
 		configure_stream_local("RC_CHANNELS", 0.5f);
