@@ -126,8 +126,11 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 		if (_control_status.flags.baro_hgt) {
 
 			if (continuing_conditions_passing) {
-				log_critical_baro("continue baro");
+				log_info_baro("CONTINUE BARO"); // AvesAID: updating the height reference
 				fuseVerticalPosition(aid_src);
+				if (_height_ref == HeightSensor::UNKNOWN){
+					_height_ref = HeightSensor::BARO; // AvesAID: updating the height reference
+				}
 
 				const bool is_fusion_failing = isTimedOut(aid_src.time_last_fuse, _params.hgt_fusion_timeout_max);
 
@@ -163,7 +166,7 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 
 		} else {
 			if (starting_conditions_passing) {
-				log_critical_baro("Start baro");
+				log_info_baro("START BARO"); // AvesAID: updating the height reference
 				if (_params.height_sensor_ref == static_cast<int32_t>(HeightSensor::BARO)) {
 					ECL_INFO("starting %s height fusion, resetting height", HGT_SRC_NAME);
 					_height_sensor_ref = HeightSensor::BARO;
@@ -189,13 +192,40 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 		ECL_WARN("stopping %s height fusion, no data", HGT_SRC_NAME);
 		stopBaroHgtFusion();
 	}
-}
-static const char* last_message_baro = nullptr;
 
+	// AvesAID: updating the height reference
+	if (_height_ref != _prev_height_ref){
+
+		_prev_height_ref = _height_ref;
+
+		switch (_height_ref) {
+
+		case HeightSensor::UNKNOWN:
+			mavlink_log_info(&_mavlink_log_pub, "%s", "UNKNOWN");
+			break;
+
+		case HeightSensor::BARO:
+			mavlink_log_info(&_mavlink_log_pub, "%s", "BARO");
+			break;
+
+		case HeightSensor::EV:
+			mavlink_log_info(&_mavlink_log_pub, "%s", "SLAM");
+			break;
+
+		default:
+			mavlink_log_info(&_mavlink_log_pub, "%s", "ERROR");
+			break;
+		}
+
+	}
+	// AvesAID: updating the height reference //
+}
+static const char* last_message_baro = nullptr;  // AvesAID: updating the height reference
+	 // AvesAID: updating the height reference
 	// Helper function to log a message only when it's new
-void Ekf::log_critical_baro(const char* message_baro) {
+void Ekf::log_info_baro(const char* message_baro) {
 	if (last_message_baro == nullptr || strcmp(last_message_baro, message_baro) != 0) {
-		mavlink_log_critical(&_mavlink_log_pub, "%s", message_baro);
+		mavlink_log_info(&_mavlink_log_pub, "%s", message_baro);
 		last_message_baro = message_baro;  // Update the last_message_baro
 	}
 }
@@ -206,8 +236,10 @@ void Ekf::stopBaroHgtFusion()
 
 		if (_height_sensor_ref == HeightSensor::BARO) {
 			_height_sensor_ref = HeightSensor::UNKNOWN;
-		}
+			_height_ref = HeightSensor::UNKNOWN; // AvesAID: updating the height reference
 
+		}
+		log_info_baro("STOP BARO"); // AvesAID: updating the height reference
 		_baro_b_est.setFusionInactive();
 
 		_control_status.flags.baro_hgt = false;

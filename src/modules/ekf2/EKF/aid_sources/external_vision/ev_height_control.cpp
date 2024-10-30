@@ -116,9 +116,9 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 	_vehicle_status_sub.update();
 
 	if (_control_status.flags.ev_hgt) {
-		if (_vehicle_status_sub.get().nav_state != vehicle_status_s::NAVIGATION_STATE_ALTCTL){
-			if (continuing_conditions_passing) {
-				log_critical_ev("continue EV");
+		if (continuing_conditions_passing) {
+			if (_vehicle_status_sub.get().nav_state != vehicle_status_s::NAVIGATION_STATE_ALTCTL){
+				// log_info_ev("CONTINUE SLAM"); // AvesAID: updating the height reference
 
 				if (ev_reset) {
 
@@ -145,6 +145,8 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 
 				} else if (quality_sufficient) {
 					fuseVerticalPosition(aid_src);
+					_height_ref = HeightSensor::EV; // AvesAID: updating the height reference
+					log_info_ev("FUSE SLAM"); // AvesAID: updating the height reference
 
 				} else {
 					aid_src.innovation_rejected = true;
@@ -155,7 +157,7 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 				if (isHeightResetRequired() && quality_sufficient && (_height_sensor_ref == HeightSensor::EV)) {
 					// All height sources are failing
 					ECL_WARN("%s fusion reset required, all height sources failing", AID_SRC_NAME);
-					log_critical_ev("fusion reset required, all height sources failing\t");
+					// log_info_ev("fusion reset required, all height sources failing\t");
 					_information_events.flags.reset_hgt_to_ev = true;
 					resetVerticalPositionTo(measurement - bias_est.getBias(), measurement_var);
 					bias_est.setBias(-_state.pos(2) + measurement);
@@ -166,42 +168,52 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 					// A reset did not fix the issue but all the starting checks are not passing
 					// This could be a temporary issue, stop the fusion without declaring the sensor faulty
 					ECL_WARN("stopping %s, fusion failing", AID_SRC_NAME);
-					log_critical_ev("stopping  fusion failing\t");
+					// log_info_ev("stopping  fusion failing\t");
 					stopEvHgtFusion();
 				}
 
 			} else {
-				// Stop fusion but do not declare it faulty
-				ECL_WARN("stopping %s fusion, continuing conditions failing", AID_SRC_NAME);
-				log_critical_ev("stopping fusion, continuing conditions failing\t");
-				stopEvHgtFusion();
+				_height_ref = HeightSensor::BARO; // AvesAID: updating the height reference
 			}
+
+		} else {
+			// Stop fusion but do not declare it faulty
+			ECL_WARN("stopping %s fusion, continuing conditions failing", AID_SRC_NAME);
+			// log_info_ev("stopping fusion, continuing conditions failing\t");
+			stopEvHgtFusion();
 		}
 
+
 	} else {
-		if (_vehicle_status_sub.get().nav_state != vehicle_status_s::NAVIGATION_STATE_ALTCTL){
-			log_critical_ev("not in altitude hold\t");
-			if (starting_conditions_passing) {
-				log_critical_ev("Starting EV");
+
+		if (starting_conditions_passing) {
+
+			if (_vehicle_status_sub.get().nav_state != vehicle_status_s::NAVIGATION_STATE_ALTCTL){
+				log_info_ev("START SLAM"); // AvesAID: updating the height reference
+				// log_info_ev("not in altitude hold\t");
 				// activate fusion, only reset if necessary
 				if (_params.height_sensor_ref == static_cast<int32_t>(HeightSensor::EV)) {
 					ECL_INFO("starting %s fusion, resetting state", AID_SRC_NAME);
-					log_critical_ev("starting fusion, resetting state\t");
+					// log_info_ev("starting fusion, resetting state\t");
 					_information_events.flags.reset_hgt_to_ev = true;
 					resetVerticalPositionTo(measurement, measurement_var);
-
 					_height_sensor_ref = HeightSensor::EV;
 					bias_est.reset();
 
 				} else {
 					ECL_INFO("starting %s fusion", AID_SRC_NAME);
-					log_critical_ev("starting fusion, resetting state\t");
+					log_info_ev("starting fusion, resetting state\t");
 					bias_est.setBias(-_state.pos(2) + measurement);
 				}
 
 				aid_src.time_last_fuse = _time_delayed_us;
 				bias_est.setFusionActive();
 				_control_status.flags.ev_hgt = true;
+
+				// _height_ref = HeightSensor::EV; // AvesAID: updating the height reference
+
+			} else {
+				// _height_ref = HeightSensor::BARO; // AvesAID: updating the height reference
 			}
 		}
 	}
@@ -209,9 +221,9 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 static const char* last_message_ev = nullptr;
 
 	// Helper function to log a message only when it's new
-void Ekf::log_critical_ev(const char* message_ev) {
+void Ekf::log_info_ev(const char* message_ev) {
 	if (last_message_ev == nullptr || strcmp(last_message_ev, message_ev) != 0) {
-		mavlink_log_critical(&_mavlink_log_pub, "%s", message_ev);
+		mavlink_log_info(&_mavlink_log_pub, "%s", message_ev);
 		last_message_ev = message_ev;  // Update the last_message_ev
 	}
 }
@@ -222,8 +234,9 @@ void Ekf::stopEvHgtFusion()
 
 		if (_height_sensor_ref == HeightSensor::EV) {
 			_height_sensor_ref = HeightSensor::UNKNOWN;
+			_height_ref = HeightSensor::UNKNOWN; // AvesAID: updating the height reference
 		}
-
+		log_info_ev("STOP SLAM"); // AvesAID: updating the height reference
 		_ev_hgt_b_est.setFusionInactive();
 
 		_control_status.flags.ev_hgt = false;

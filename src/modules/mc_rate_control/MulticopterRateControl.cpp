@@ -190,7 +190,7 @@ MulticopterRateControl::Run()
 
 				_rates_setpoint = man_rate_sp.emult(_acro_rate_max);
 				// _thrust_setpoint(2) = -(manual_control_setpoint.throttle + 1.f) * .5f;
-				_thrust_setpoint(2) = -throttle_curve((manual_control_setpoint.throttle + 1.f) * .5f);
+				_thrust_setpoint(2) = -throttle_curve((manual_control_setpoint.throttle + 1.f) * .5f); // AvesAID: ACRO throttle percent same as other modes
 				_thrust_setpoint(0) = _thrust_setpoint(1) = 0.f;
 
 				// publish rate setpoint
@@ -217,6 +217,16 @@ MulticopterRateControl::Run()
 
 			// reset integral if disarmed
 			if (!_vehicle_control_mode.flag_armed || _vehicle_status.vehicle_type != vehicle_status_s::VEHICLE_TYPE_ROTARY_WING) {
+				_rate_control.resetIntegral();
+			}
+
+			// AvesAID: Reset Integral gains in STABILIZED mode
+			if (_vehicle_control_mode.flag_control_manual_enabled &&
+			    _vehicle_control_mode.flag_control_attitude_enabled &&
+			    !_vehicle_control_mode.flag_control_altitude_enabled &&
+			    !_vehicle_control_mode.flag_control_velocity_enabled &&
+			    !_vehicle_control_mode.flag_control_position_enabled) {
+				// Reset Integral gains in rate control to zero in STABILIZED mode
 				_rate_control.resetIntegral();
 			}
 
