@@ -220,8 +220,9 @@ MulticopterRateControl::Run()
 				_rate_control.resetIntegral();
 			}
 
-			// AvesAID: Reset Integral gains in STABILIZED mode
-			if (_vehicle_control_mode.flag_control_manual_enabled &&
+			// AvesAID: Reset Integral gains in STABILIZED modecwhile Attached
+			if (_vehicle_control_mode.flag_control_attachment_enabled &&
+			    _vehicle_control_mode.flag_control_manual_enabled &&
 			    _vehicle_control_mode.flag_control_attitude_enabled &&
 			    !_vehicle_control_mode.flag_control_altitude_enabled &&
 			    !_vehicle_control_mode.flag_control_velocity_enabled &&

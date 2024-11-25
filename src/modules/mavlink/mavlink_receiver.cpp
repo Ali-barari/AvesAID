@@ -105,6 +105,31 @@ static constexpr vehicle_odometry_s vehicle_odometry_empty {
 	.reset_counter = 0,
 	.quality = 0
 };
+// AvesAID: chnage the flight mode internally for Attach/Detach
+static bool send_vehicle_command(const uint32_t cmd, const float param1 = NAN, const float param2 = NAN,
+				 const float param3 = NAN,  const float param4 = NAN, const double param5 = static_cast<double>(NAN),
+				 const double param6 = static_cast<double>(NAN), const float param7 = NAN)
+{
+	vehicle_command_s vcmd{};
+	vcmd.command = cmd;
+	vcmd.param1 = param1;
+	vcmd.param2 = param2;
+	vcmd.param3 = param3;
+	vcmd.param4 = param4;
+	vcmd.param5 = param5;
+	vcmd.param6 = param6;
+	vcmd.param7 = param7;
+
+	uORB::SubscriptionData<vehicle_status_s> vehicle_status_sub{ORB_ID(vehicle_status)};
+	vcmd.source_system = vehicle_status_sub.get().system_id;
+	vcmd.target_system = vehicle_status_sub.get().system_id;
+	vcmd.source_component = vehicle_status_sub.get().component_id;
+	vcmd.target_component = vehicle_status_sub.get().component_id;
+
+	uORB::Publication<vehicle_command_s> vcmd_pub{ORB_ID(vehicle_command)};
+	vcmd.timestamp = hrt_absolute_time();
+	return vcmd_pub.publish(vcmd);
+}
 
 MavlinkReceiver::MavlinkReceiver(Mavlink &parent) :
 	ModuleParams(nullptr),
@@ -616,6 +641,56 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_DENIED;
 			send_ack = true;
 		}
+
+	} else if(cmd_mavlink.command == MAV_CMD_MAGNET){ // AvesAID: Magnets: handle command
+
+		if ((uint16_t)roundf(cmd_mavlink.param1) == 1){
+
+			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
+			send_ack = true;
+			_mavlink.send_statustext_info("AvesAID: Magnets on");
+
+		} else if((uint16_t)roundf(cmd_mavlink.param1) == 0){
+
+			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
+			send_ack = true;
+			_mavlink.send_statustext_info("AvesAID: Magnets off");
+
+		}
+
+	} else if(cmd_mavlink.command == MAV_CMD_ATTACHMENT){ // AvesAID: Attachment: handle command
+		/* AvesAID: check for updates in other topics */
+		_vehicle_control_mode_sub.update(&_vehicle_control_mode);
+		_vehicle_status_sub.update(&_vehicle_status);
+
+		if ((uint16_t)roundf(cmd_mavlink.param1) == 1){
+
+			current_nav_state = _vehicle_status.nav_state;
+
+			px4_custom_mode custom_mode = get_px4_custom_mode(current_nav_state);
+			_prev_custom_main_mode = custom_mode.main_mode;
+
+			send_vehicle_command(vehicle_command_s::VEHICLE_CMD_DO_SET_MODE, 1, PX4_CUSTOM_MAIN_MODE_STABILIZED);
+
+			_vehicle_control_mode.flag_control_attachment_enabled = true;
+
+			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
+			send_ack = true;
+			_mavlink.send_statustext_critical("AvesAID: Attached");
+
+		} else if((uint16_t)roundf(cmd_mavlink.param1) == 0){
+
+			send_vehicle_command(vehicle_command_s::VEHICLE_CMD_DO_SET_MODE, 1, _prev_custom_main_mode);
+
+			_vehicle_control_mode.flag_control_attachment_enabled = false;
+			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
+			send_ack = true;
+			_mavlink.send_statustext_critical("AvesAID: Detached");
+
+		}
+
+
+
 
 	} else if (cmd_mavlink.command == MAV_CMD_DO_AUTOTUNE_ENABLE) {
 

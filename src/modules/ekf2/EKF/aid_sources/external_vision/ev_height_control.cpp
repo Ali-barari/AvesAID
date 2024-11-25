@@ -202,7 +202,7 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 
 				} else {
 					ECL_INFO("starting %s fusion", AID_SRC_NAME);
-					log_info_ev("starting fusion, resetting state\t");
+					log_info_ev("starting fusion, resetting state");
 					bias_est.setBias(-_state.pos(2) + measurement);
 				}
 

@@ -114,6 +114,10 @@
 #include <uORB/topics/vehicle_trajectory_bezier.h>
 #include <uORB/topics/vehicle_trajectory_waypoint.h>
 #include <uORB/topics/velocity_limits.h>
+#include <uORB/topics/vehicle_control_mode.h> // AvesAID: Attachment
+#include "commander/Commander.hpp" // AvesAID: Attachment
+#define DEFINE_GET_PX4_CUSTOM_MODE
+#include "commander/px4_custom_mode.h"
 
 #if !defined(CONSTRAINED_FLASH)
 # include <uORB/topics/debug_array.h>
@@ -352,6 +356,7 @@ private:
 	uORB::PublicationMulti<sensor_baro_s>			_sensor_baro_pub{ORB_ID(sensor_baro)};
 	uORB::PublicationMulti<sensor_gps_s>			_sensor_gps_pub{ORB_ID(sensor_gps)};
 	uORB::PublicationMulti<sensor_optical_flow_s>           _sensor_optical_flow_pub{ORB_ID(sensor_optical_flow)};
+	uORB::Publication<vehicle_command_s>	_vehicle_command_pub{ORB_ID(vehicle_command)};	// AvesAID: Attachment
 
 	// ORB publications (queue length > 1)
 	uORB::Publication<transponder_report_s>  _transponder_report_pub{ORB_ID(transponder_report)};
@@ -366,9 +371,23 @@ private:
 	uORB::Subscription	_vehicle_global_position_sub{ORB_ID(vehicle_global_position)};
 	uORB::Subscription	_vehicle_status_sub{ORB_ID(vehicle_status)};
 	uORB::Subscription	_autotune_attitude_control_status_sub{ORB_ID(autotune_attitude_control_status)};
+	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)}; // AvesAID: Attachment
+
 
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
 
+	vehicle_control_mode_s	_vehicle_control_mode{}; // AvesAID: Attachment
+	vehicle_status_s	_vehicle_status{}; // AvesAID: Attachment
+	uint8_t _prev_custom_main_mode;
+	uint8_t current_nav_state;
+
+	HealthAndArmingChecks	_health_and_arming_checks{this, _vehicle_status};
+	ModeManagement  	_mode_management{
+#ifndef CONSTRAINED_FLASH
+		_health_and_arming_checks.externalChecks()
+#endif
+	};
+	UserModeIntention	_user_mode_intention {this, _vehicle_status, _health_and_arming_checks, &_mode_management};
 	// hil_sensor and hil_state_quaternion
 	enum SensorSource {
 		ACCEL		= 0b111,
