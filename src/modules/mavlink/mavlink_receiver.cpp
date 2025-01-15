@@ -660,9 +660,10 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 
 	} else if(cmd_mavlink.command == MAV_CMD_ATTACHMENT){ // AvesAID: Attachment: handle command
 		/* AvesAID: check for updates in other topics */
-		_vehicle_control_mode_sub.update(&_vehicle_control_mode);
-		_vehicle_status_sub.update(&_vehicle_status);
+		// _vehicle_control_mode_sub.update(_vehicle_control_mode);
+		_vehicle_status_sub.update(&_vehicle_status); // AvesAID: Attachment
 
+		// if ((uint16_t)roundf(cmd_mavlink.param1) == 1 && (!_current_attachment_signal || _current_partial_attachment_signal)){
 		if ((uint16_t)roundf(cmd_mavlink.param1) == 1){
 
 			current_nav_state = _vehicle_status.nav_state;
@@ -672,23 +673,74 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 
 			send_vehicle_command(vehicle_command_s::VEHICLE_CMD_DO_SET_MODE, 1, PX4_CUSTOM_MAIN_MODE_STABILIZED);
 
-			_vehicle_control_mode.flag_control_attachment_enabled = true;
+			attachment_control.flag_control_attachment_enabled = true;
+			_current_attachment_signal = true;
+			attachment_control.flag_control_partial_attachment_enabled = false;
+			_current_partial_attachment_signal = false;
 
 			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
 			send_ack = true;
-			_mavlink.send_statustext_critical("AvesAID: Attached");
+			_mavlink.send_statustext_info("AvesAID: Attached");
+
+
 
 		} else if((uint16_t)roundf(cmd_mavlink.param1) == 0){
 
-			send_vehicle_command(vehicle_command_s::VEHICLE_CMD_DO_SET_MODE, 1, _prev_custom_main_mode);
+			if (_current_attachment_signal){
 
-			_vehicle_control_mode.flag_control_attachment_enabled = false;
+				send_vehicle_command(vehicle_command_s::VEHICLE_CMD_DO_SET_MODE, 1, _prev_custom_main_mode);
+
+				// attachment_control.flag_control_attachment_enabled = false;
+				// _current_attachment_signal = false;
+
+			}
+			// else if (_current_partial_attachment_signal)
+
+			// {
+			// 	// attachment_control.flag_control_partial_attachment_enabled = false;
+			// 	// _current_partial_attachment_signal = false;
+			// }
+
+			attachment_control.flag_control_attachment_enabled = false;
+			_current_attachment_signal = false;
+			attachment_control.flag_control_partial_attachment_enabled = false;
+			_current_partial_attachment_signal = false;
+
 			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
 			send_ack = true;
-			_mavlink.send_statustext_critical("AvesAID: Detached");
+			_mavlink.send_statustext_info("AvesAID: Detached");
+
+
+		// } else if((uint16_t)roundf(cmd_mavlink.param1) == 2 && !_current_partial_attachment_signal){
+		} else if((uint16_t)roundf(cmd_mavlink.param1) == 2){
+
+			if (_current_attachment_signal){
+
+				send_vehicle_command(vehicle_command_s::VEHICLE_CMD_DO_SET_MODE, 1, _prev_custom_main_mode);
+
+				// attachment_control.flag_control_attachment_enabled = false;
+				// _current_attachment_signal = false;
+
+			}
+
+			attachment_control.flag_control_partial_attachment_enabled = true;
+			_current_partial_attachment_signal = true;
+			attachment_control.flag_control_attachment_enabled = false;
+			_current_attachment_signal = false;
+
+			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
+			send_ack = true;
+			_mavlink.send_statustext_info("AvesAID: Partially Attached");
+
+
 
 		}
 
+		attachment_control.timestamp = hrt_absolute_time();
+		_attachment_control_pub.publish(attachment_control);
+
+		// PX4_INFO("Attachment State: attachment_enabled=%d, partial_attachment_enabled=%d",
+		// 	(int)attachment_control.flag_control_attachment_enabled, (int)attachment_control.flag_control_partial_attachment_enabled);
 
 
 

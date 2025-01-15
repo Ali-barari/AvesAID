@@ -80,10 +80,25 @@ MulticopterRateControl::parameters_updated()
 	// to the ideal (K * [1 + 1/sTi + sTd]) form
 	const Vector3f rate_k = Vector3f(_param_mc_rollrate_k.get(), _param_mc_pitchrate_k.get(), _param_mc_yawrate_k.get());
 
+	// AvesAID: Reset integrals when attachment flags are enabled
+	Vector3f rate_i;
+	if (attachment_control.flag_control_partial_attachment_enabled || attachment_control.flag_control_attachment_enabled) {
+		rate_i = Vector3f(0.0f, 0.0f, 0.0f);
+		mavlink_log_info(&_mavlink_log_pub, "Attached or Partially-Attached: Zero Integral\t");
+	} else {
+		rate_i = Vector3f(_param_mc_rollrate_i.get(), _param_mc_pitchrate_i.get(), _param_mc_yawrate_i.get());
+		mavlink_log_info(&_mavlink_log_pub, "Detached: Normal Integral\t");
+	}
+
 	_rate_control.setPidGains(
 		rate_k.emult(Vector3f(_param_mc_rollrate_p.get(), _param_mc_pitchrate_p.get(), _param_mc_yawrate_p.get())),
-		rate_k.emult(Vector3f(_param_mc_rollrate_i.get(), _param_mc_pitchrate_i.get(), _param_mc_yawrate_i.get())),
+		rate_k.emult(rate_i),
 		rate_k.emult(Vector3f(_param_mc_rollrate_d.get(), _param_mc_pitchrate_d.get(), _param_mc_yawrate_d.get())));
+
+	// _rate_control.setPidGains(
+	// 	rate_k.emult(Vector3f(_param_mc_rollrate_p.get(), _param_mc_pitchrate_p.get(), _param_mc_yawrate_p.get())),
+	// 	rate_k.emult(Vector3f(_param_mc_rollrate_i.get(), _param_mc_pitchrate_i.get(), _param_mc_yawrate_i.get())),
+	// 	rate_k.emult(Vector3f(_param_mc_rollrate_d.get(), _param_mc_pitchrate_d.get(), _param_mc_yawrate_d.get())));
 
 	_rate_control.setIntegratorLimit(
 		Vector3f(_param_mc_rr_int_lim.get(), _param_mc_pr_int_lim.get(), _param_mc_yr_int_lim.get()));
@@ -162,6 +177,16 @@ MulticopterRateControl::Run()
 
 		/* check for updates in other topics */
 		_vehicle_control_mode_sub.update(&_vehicle_control_mode);
+		_attachment_control_sub.update(&attachment_control); // AvesAID: Attachment control
+
+		// Check for attachment state change
+		if ((attachment_control.flag_control_partial_attachment_enabled != _prev_partial_attachment) ||
+			(attachment_control.flag_control_attachment_enabled != _prev_attachment)) {
+
+			parameters_updated(); // Update parameters when attachment state changes
+			_prev_partial_attachment = attachment_control.flag_control_partial_attachment_enabled;
+			_prev_attachment = attachment_control.flag_control_attachment_enabled;
+		}
 
 		if (_vehicle_land_detected_sub.updated()) {
 			vehicle_land_detected_s vehicle_land_detected;
@@ -220,16 +245,22 @@ MulticopterRateControl::Run()
 				_rate_control.resetIntegral();
 			}
 
-			// AvesAID: Reset Integral gains in STABILIZED modecwhile Attached
-			if (_vehicle_control_mode.flag_control_attachment_enabled &&
-			    _vehicle_control_mode.flag_control_manual_enabled &&
-			    _vehicle_control_mode.flag_control_attitude_enabled &&
-			    !_vehicle_control_mode.flag_control_altitude_enabled &&
-			    !_vehicle_control_mode.flag_control_velocity_enabled &&
-			    !_vehicle_control_mode.flag_control_position_enabled) {
-				// Reset Integral gains in rate control to zero in STABILIZED mode
-				_rate_control.resetIntegral();
-			}
+			// // AvesAID: reset integral if partially-attached
+			// if (attachment_control.flag_control_partial_attachment_enabled) {
+			// 	mavlink_log_info(&_mavlink_log_pub, "reset integral: partially-attached\t");
+
+			// }
+
+			// // AvesAID: Reset Integral gains in STABILIZED mode while Attached
+			// if (attachment_control.flag_control_attachment_enabled &&
+			//     _vehicle_control_mode.flag_control_manual_enabled &&
+			//     !_vehicle_control_mode.flag_control_altitude_enabled &&
+			//     !_vehicle_control_mode.flag_control_velocity_enabled &&
+			//     !_vehicle_control_mode.flag_control_position_enabled) {
+			// 	// Reset Integral gains in rate control to zero in STABILIZED mode
+			// 	mavlink_log_info(&_mavlink_log_pub, "Reset Integral: Attached\t");
+
+			// }
 
 			// update saturation status from control allocation feedback
 			control_allocator_status_s control_allocator_status;

@@ -60,6 +60,8 @@
 #include <uORB/topics/vehicle_thrust_setpoint.h>
 #include <uORB/topics/vehicle_torque_setpoint.h>
 #include <lib/slew_rate/SlewRate.hpp>
+#include <lib/systemlib/mavlink_log.h> //AvesAID: Attachment control
+#include <uORB/topics/attachment_control.h> //AvesAID: Attachment control
 
 
 using namespace time_literals;
@@ -80,6 +82,8 @@ public:
 	static int print_usage(const char *reason = nullptr);
 
 	bool init();
+
+	orb_advert_t _mavlink_log_pub{nullptr}; // AvesAID: updating the height reference
 
 private:
 	void Run() override;
@@ -102,6 +106,8 @@ private:
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
 	uORB::Subscription _vehicle_rates_setpoint_sub{ORB_ID(vehicle_rates_setpoint)};
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
+	uORB::Subscription _attachment_control_sub{ORB_ID(attachment_control)}; //AvesAID: Attachment control
+
 
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
 
@@ -112,6 +118,10 @@ private:
 	uORB::Publication<vehicle_rates_setpoint_s>	_vehicle_rates_setpoint_pub{ORB_ID(vehicle_rates_setpoint)};
 	uORB::Publication<vehicle_torque_setpoint_s>	_vehicle_torque_setpoint_pub;
 	uORB::Publication<vehicle_thrust_setpoint_s>	_vehicle_thrust_setpoint_pub;
+
+	attachment_control_s attachment_control{}; //AvesAID: Attachment control
+	bool _prev_partial_attachment = false; //AvesAID: Attachment control
+	bool _prev_attachment = false; //AvesAID: Attachment control
 
 	vehicle_control_mode_s	_vehicle_control_mode{};
 	vehicle_status_s	_vehicle_status{};

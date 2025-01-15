@@ -51,6 +51,10 @@
 #include "mavlink_timesync.h"
 #include "tune_publisher.h"
 
+#include "commander/HealthAndArmingChecks/HealthAndArmingChecks.hpp"// AvesAID: Attachment
+#include "commander/ModeManagement.hpp"// AvesAID: Attachment
+#include "commander/UserModeIntention.hpp" // AvesAID: Attachment
+
 #include <geo/geo.h>
 #include <lib/drivers/accelerometer/PX4Accelerometer.hpp>
 #include <lib/drivers/gyroscope/PX4Gyroscope.hpp>
@@ -114,8 +118,9 @@
 #include <uORB/topics/vehicle_trajectory_bezier.h>
 #include <uORB/topics/vehicle_trajectory_waypoint.h>
 #include <uORB/topics/velocity_limits.h>
-#include <uORB/topics/vehicle_control_mode.h> // AvesAID: Attachment
-#include "commander/Commander.hpp" // AvesAID: Attachment
+
+#include <uORB/topics/attachment_control.h> // AvesAID: Attachment
+
 #define DEFINE_GET_PX4_CUSTOM_MODE
 #include "commander/px4_custom_mode.h"
 
@@ -357,6 +362,8 @@ private:
 	uORB::PublicationMulti<sensor_gps_s>			_sensor_gps_pub{ORB_ID(sensor_gps)};
 	uORB::PublicationMulti<sensor_optical_flow_s>           _sensor_optical_flow_pub{ORB_ID(sensor_optical_flow)};
 	uORB::Publication<vehicle_command_s>	_vehicle_command_pub{ORB_ID(vehicle_command)};	// AvesAID: Attachment
+	uORB::Publication<attachment_control_s> _attachment_control_pub{ORB_ID(attachment_control)};
+
 
 	// ORB publications (queue length > 1)
 	uORB::Publication<transponder_report_s>  _transponder_report_pub{ORB_ID(transponder_report)};
@@ -376,10 +383,13 @@ private:
 
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
 
-	vehicle_control_mode_s	_vehicle_control_mode{}; // AvesAID: Attachment
 	vehicle_status_s	_vehicle_status{}; // AvesAID: Attachment
-	uint8_t _prev_custom_main_mode;
-	uint8_t current_nav_state;
+	attachment_control_s attachment_control{}; // AvesAID: Attachment
+	uint8_t _prev_custom_main_mode; // AvesAID: Attachment
+	uint8_t current_nav_state; // AvesAID: Attachment
+
+	bool _current_attachment_signal {false};
+	bool _current_partial_attachment_signal {false};
 
 	HealthAndArmingChecks	_health_and_arming_checks{this, _vehicle_status};
 	ModeManagement  	_mode_management{
