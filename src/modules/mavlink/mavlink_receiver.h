@@ -120,6 +120,8 @@
 #include <uORB/topics/velocity_limits.h>
 
 #include <uORB/topics/attachment_control.h> // AvesAID: Attachment
+#include <uORB/topics/avesaid_status.h> // AvesAID: flight
+
 
 #define DEFINE_GET_PX4_CUSTOM_MODE
 #include "commander/px4_custom_mode.h"
@@ -362,7 +364,7 @@ private:
 	uORB::PublicationMulti<sensor_gps_s>			_sensor_gps_pub{ORB_ID(sensor_gps)};
 	uORB::PublicationMulti<sensor_optical_flow_s>           _sensor_optical_flow_pub{ORB_ID(sensor_optical_flow)};
 	uORB::Publication<vehicle_command_s>	_vehicle_command_pub{ORB_ID(vehicle_command)};	// AvesAID: Attachment
-	uORB::Publication<attachment_control_s> _attachment_control_pub{ORB_ID(attachment_control)};
+	uORB::Publication<avesaid_status_s> _avesaid_status_pub{ORB_ID(avesaid_status)}; // AvesAID: flight
 
 
 	// ORB publications (queue length > 1)
@@ -384,9 +386,8 @@ private:
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
 
 	vehicle_status_s	_vehicle_status{}; // AvesAID: Attachment
-	attachment_control_s attachment_control{}; // AvesAID: Attachment
-	uint8_t _prev_custom_main_mode; // AvesAID: Attachment
-	uint8_t current_nav_state; // AvesAID: Attachment
+	avesaid_status_s avesaid_status{}; //AvesAID: flight
+
 
 	bool _current_attachment_signal {false};
 	bool _current_partial_attachment_signal {false};

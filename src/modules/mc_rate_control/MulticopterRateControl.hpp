@@ -62,6 +62,7 @@
 #include <lib/slew_rate/SlewRate.hpp>
 #include <lib/systemlib/mavlink_log.h> //AvesAID: Attachment control
 #include <uORB/topics/attachment_control.h> //AvesAID: Attachment control
+#include <uORB/topics/avesaid_status.h> // AvesAID: flight
 
 
 using namespace time_literals;
@@ -106,7 +107,7 @@ private:
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
 	uORB::Subscription _vehicle_rates_setpoint_sub{ORB_ID(vehicle_rates_setpoint)};
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
-	uORB::Subscription _attachment_control_sub{ORB_ID(attachment_control)}; //AvesAID: Attachment control
+	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; //AvesAID: flight
 
 
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
@@ -119,7 +120,8 @@ private:
 	uORB::Publication<vehicle_torque_setpoint_s>	_vehicle_torque_setpoint_pub;
 	uORB::Publication<vehicle_thrust_setpoint_s>	_vehicle_thrust_setpoint_pub;
 
-	attachment_control_s attachment_control{}; //AvesAID: Attachment control
+	avesaid_status_s avesaid_status{}; //AvesAID: flight
+
 	bool _prev_partial_attachment = false; //AvesAID: Attachment control
 	bool _prev_attachment = false; //AvesAID: Attachment control
 
