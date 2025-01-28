@@ -194,10 +194,22 @@ void MulticopterPositionControl::parameters_update(bool force)
 		}
 
 		_control.setPositionGains(Vector3f(_param_mpc_xy_p.get(), _param_mpc_xy_p.get(), _param_mpc_z_p.get()));
+		//AvesAID: Reset integrals when attachment flags are enabled
+		Vector3f velocity_i;
+		if (avesaid_status.flag_mode_partial_attachment_enabled || avesaid_status.flag_mode_attachment_enabled) {
+			velocity_i = Vector3f(0.0f, 0.0f, 0.0f);
+			mavlink_log_info(&_mavlink_log_pub, "Full/Partially-Attached: Zero velocity Integral\t");
+		} else {
+			velocity_i = Vector3f(_param_mpc_xy_vel_i_acc.get(), _param_mpc_xy_vel_i_acc.get(), _param_mpc_z_vel_i_acc.get());
+			mavlink_log_info(&_mavlink_log_pub, "Detached: Normal velocity Integral\t");
+		}
+
+
 		_control.setVelocityGains(
 			Vector3f(_param_mpc_xy_vel_p_acc.get(), _param_mpc_xy_vel_p_acc.get(), _param_mpc_z_vel_p_acc.get()),
-			Vector3f(_param_mpc_xy_vel_i_acc.get(), _param_mpc_xy_vel_i_acc.get(), _param_mpc_z_vel_i_acc.get()),
+			velocity_i,
 			Vector3f(_param_mpc_xy_vel_d_acc.get(), _param_mpc_xy_vel_d_acc.get(), _param_mpc_z_vel_d_acc.get()));
+
 		_control.setHorizontalThrustMargin(_param_mpc_thr_xy_marg.get());
 		_control.decoupleHorizontalAndVecticalAcceleration(_param_mpc_acc_decouple.get());
 		_goto_control.setParamMpcAccHor(_param_mpc_acc_hor.get());
@@ -410,6 +422,21 @@ void MulticopterPositionControl::Run()
 					_setpoint = PositionControl::empty_trajectory_setpoint;
 				}
 			}
+		}
+
+		_avesaid_status_sub.update(&avesaid_status); // AvesAID: flight
+
+		// Check for attachment state change
+		if ((avesaid_status.flag_mode_partial_attachment_enabled != _prev_partial_attachment) ||
+			(avesaid_status.flag_mode_attachment_enabled != _prev_attachment)) {
+
+			parameters_update(true); // Update parameters when attachment state changes
+
+			_prev_partial_attachment = avesaid_status.flag_mode_partial_attachment_enabled;
+			_prev_partial_attachment = avesaid_status.flag_mode_partial_attachment_enabled;
+
+			_prev_attachment = avesaid_status.flag_mode_attachment_enabled;
+			_prev_attachment = avesaid_status.flag_mode_attachment_enabled;
 		}
 
 		_vehicle_land_detected_sub.update(&_vehicle_land_detected);

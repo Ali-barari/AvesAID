@@ -67,6 +67,10 @@
 #include <uORB/topics/vehicle_land_detected.h>
 #include <uORB/topics/vehicle_local_position.h>
 #include <uORB/topics/vehicle_local_position_setpoint.h>
+#include <uORB/topics/attachment_control.h> //AvesAID: Attachment control
+#include <uORB/topics/avesaid_status.h> // AvesAID: flight
+
+
 
 using namespace time_literals;
 
@@ -108,6 +112,13 @@ private:
 	uORB::Subscription _vehicle_constraints_sub{ORB_ID(vehicle_constraints)};
 	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)};
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
+	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; //AvesAID: flight
+
+
+	avesaid_status_s avesaid_status{}; //AvesAID: flight
+
+	bool _prev_partial_attachment = false; //AvesAID: Attachment control
+	bool _prev_attachment = false; //AvesAID: Attachment control
 
 	hrt_abstime _time_stamp_last_loop{0};		/**< time stamp of last loop iteration */
 	hrt_abstime _time_position_control_enabled{0};
