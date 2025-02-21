@@ -575,6 +575,8 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 		return;
 	}
 
+	_avesaid_status_sub.update(&avesaid_status); // AvesAID: AVESAID_STATUS
+
 	// First we handle legacy support requests which were used before we had
 	// the generic MAV_CMD_REQUEST_MESSAGE.
 	if (cmd_mavlink.command == MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES) {
@@ -673,8 +675,8 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 
 		}
 
-		avesaid_status.timestamp = hrt_absolute_time();
-		_avesaid_status_pub.publish(avesaid_status);
+		// avesaid_status.timestamp = hrt_absolute_time();
+		// _avesaid_status_pub.publish(avesaid_status);
 
 	} else if (cmd_mavlink.command == MAV_CMD_DO_AUTOTUNE_ENABLE) {
 
@@ -817,6 +819,9 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 	if (send_ack) {
 		acknowledge(msg->sysid, msg->compid, cmd_mavlink.command, result, progress);
 	}
+
+	avesaid_status.timestamp = hrt_absolute_time(); // AvesAID: AVESAID_STATUS
+	_avesaid_status_pub.publish(avesaid_status); //AvesAID: AVESAID_STATUS
 }
 
 uint8_t MavlinkReceiver::handle_request_message_command(uint16_t message_id, float param2, float param3, float param4,
