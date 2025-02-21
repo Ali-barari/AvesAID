@@ -64,6 +64,8 @@
 #include <uORB/topics/vehicle_command.h>
 #include <lib/systemlib/mavlink_log.h>
 #include <uORB/topics/vehicle_control_mode.h>
+#include <uORB/topics/avesaid_status.h> // AvesAID: flight
+#include <uORB/Publication.hpp> //AvesAID: AvesAID flight status
 
 #include "aid_sources/ZeroGyroUpdate.hpp"
 #include "aid_sources/ZeroVelocityUpdate.hpp"
@@ -96,6 +98,12 @@ public:
 	void log_info_baro(const char* message_baro); // AvesAID: Status text to QGC
 
 	uORB::SubscriptionData<vehicle_status_s> _vehicle_status_sub{ORB_ID(vehicle_status)}; // AvesAID: updating the height reference
+	uORB::Publication<avesaid_status_s> _avesaid_status_pub{ORB_ID(avesaid_status)}; // AvesAID: flight
+	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; //AvesAID: AvesAID_status
+
+	avesaid_status_s avesaid_status{}; //AvesAID: flight
+	bool prev_flag_height_source_baro; // AvesAID: updating the height reference
+	bool prev_flag_height_source_slam; // AvesAID: updating the height reference
 
 	orb_advert_t _mavlink_log_pub{nullptr}; // AvesAID: updating the height reference
 

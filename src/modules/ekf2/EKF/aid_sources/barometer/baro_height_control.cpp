@@ -123,14 +123,26 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 		const bool starting_conditions_passing = continuing_conditions_passing
 				&& isNewestSampleRecent(_time_last_baro_buffer_push, 2 * BARO_MAX_INTERVAL);
 
+		// Update to get the latest avesaid_status
+		_avesaid_status_sub.update(&avesaid_status);
+
+		// Check if the flag has changed before publishing
+		if (prev_flag_height_source_baro != avesaid_status.flag_height_source_baro_enabled) {
+		avesaid_status.timestamp = hrt_absolute_time();
+		_avesaid_status_pub.publish(avesaid_status);
+
+		// Update the previous flag after publishing
+		prev_flag_height_source_baro = avesaid_status.flag_height_source_baro_enabled;
+		}
+
+
 		if (_control_status.flags.baro_hgt) {
 
 			if (continuing_conditions_passing) {
-				log_info_baro("CONTINUE BARO"); // AvesAID: updating the height reference
+				log_info_baro("BARO"); // AvesAID: updating the height reference
 				fuseVerticalPosition(aid_src);
-				if (_height_ref == HeightSensor::UNKNOWN){
-					_height_ref = HeightSensor::BARO; // AvesAID: updating the height reference
-				}
+
+				avesaid_status.flag_height_source_baro_enabled = true; // AvesAID: AvesAID_status
 
 				const bool is_fusion_failing = isTimedOut(aid_src.time_last_fuse, _params.hgt_fusion_timeout_max);
 
@@ -166,7 +178,6 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 
 		} else {
 			if (starting_conditions_passing) {
-				log_info_baro("START BARO"); // AvesAID: updating the height reference
 				if (_params.height_sensor_ref == static_cast<int32_t>(HeightSensor::BARO)) {
 					ECL_INFO("starting %s height fusion, resetting height", HGT_SRC_NAME);
 					_height_sensor_ref = HeightSensor::BARO;
@@ -183,6 +194,10 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 				aid_src.time_last_fuse = imu_sample.time_us;
 				bias_est.setFusionActive();
 				_control_status.flags.baro_hgt = true;
+
+				log_info_baro("START BARO"); // AvesAID: updating the height reference
+
+
 			}
 		}
 
@@ -192,33 +207,6 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 		ECL_WARN("stopping %s height fusion, no data", HGT_SRC_NAME);
 		stopBaroHgtFusion();
 	}
-
-	// AvesAID: updating the height reference
-	if (_height_ref != _prev_height_ref){
-
-		_prev_height_ref = _height_ref;
-
-		switch (_height_ref) {
-
-		case HeightSensor::UNKNOWN:
-			mavlink_log_info(&_mavlink_log_pub, "%s", "UNKNOWN");
-			break;
-
-		case HeightSensor::BARO:
-			mavlink_log_info(&_mavlink_log_pub, "%s", "BARO");
-			break;
-
-		case HeightSensor::EV:
-			mavlink_log_info(&_mavlink_log_pub, "%s", "SLAM");
-			break;
-
-		default:
-			mavlink_log_info(&_mavlink_log_pub, "%s", "ERROR");
-			break;
-		}
-
-	}
-	// AvesAID: updating the height reference //
 }
 static const char* last_message_baro = nullptr;  // AvesAID: updating the height reference
 	 // AvesAID: updating the height reference
@@ -236,13 +224,16 @@ void Ekf::stopBaroHgtFusion()
 
 		if (_height_sensor_ref == HeightSensor::BARO) {
 			_height_sensor_ref = HeightSensor::UNKNOWN;
-			_height_ref = HeightSensor::UNKNOWN; // AvesAID: updating the height reference
 
 		}
 		log_info_baro("STOP BARO"); // AvesAID: updating the height reference
 		_baro_b_est.setFusionInactive();
 
 		_control_status.flags.baro_hgt = false;
+
+		avesaid_status.flag_height_source_baro_enabled = false; // AvesAID: AvesAID_status
+		avesaid_status.timestamp = hrt_absolute_time(); // AvesAID: AvesAID_status
+		_avesaid_status_pub.publish(avesaid_status); // AvesAID: AvesAID_status
 	}
 }
 

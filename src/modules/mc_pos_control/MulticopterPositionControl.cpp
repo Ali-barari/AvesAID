@@ -424,9 +424,9 @@ void MulticopterPositionControl::Run()
 			}
 		}
 
-		_avesaid_status_sub.update(&avesaid_status); // AvesAID: flight
+		_avesaid_status_sub.update(&avesaid_status); // AvesAID: AVESAID_STATUS
 
-		// Check for attachment state change
+		// AVESAID_STATUS: Check for attachment state change
 		if ((avesaid_status.flag_mode_partial_attachment_enabled != _prev_partial_attachment) ||
 			(avesaid_status.flag_mode_attachment_enabled != _prev_attachment)) {
 

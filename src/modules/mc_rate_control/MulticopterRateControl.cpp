@@ -80,7 +80,7 @@ MulticopterRateControl::parameters_updated()
 	// to the ideal (K * [1 + 1/sTi + sTd]) form
 	const Vector3f rate_k = Vector3f(_param_mc_rollrate_k.get(), _param_mc_pitchrate_k.get(), _param_mc_yawrate_k.get());
 
-	// AvesAID: Reset integrals when attachment flags are enabled
+	// AvesAID: AVESAID_STATUS Reset integrals when attachment flags are enabled
 	Vector3f rate_i;
 	if (avesaid_status.flag_mode_partial_attachment_enabled || avesaid_status.flag_mode_attachment_enabled) {
 		rate_i = Vector3f(0.0f, 0.0f, 0.0f);
@@ -178,9 +178,9 @@ MulticopterRateControl::Run()
 		/* check for updates in other topics */
 		_vehicle_control_mode_sub.update(&_vehicle_control_mode);
 		// _attachment_control_sub.update(&attachment_control); // AvesAID: Attachment control
-		_avesaid_status_sub.update(&avesaid_status); // AvesAID: flight
+		_avesaid_status_sub.update(&avesaid_status); // AvesAID: AVESAID_STATUS
 
-		// Check for attachment state change
+		// AVESAID_STATUS: Check for attachment state change
 		if ((avesaid_status.flag_mode_partial_attachment_enabled != _prev_partial_attachment) ||
 			(avesaid_status.flag_mode_attachment_enabled != _prev_attachment)) {
 

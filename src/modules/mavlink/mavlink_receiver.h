@@ -119,7 +119,6 @@
 #include <uORB/topics/vehicle_trajectory_waypoint.h>
 #include <uORB/topics/velocity_limits.h>
 
-#include <uORB/topics/attachment_control.h> // AvesAID: Attachment
 #include <uORB/topics/avesaid_status.h> // AvesAID: flight
 
 
@@ -345,6 +344,8 @@ private:
 	uORB::Publication<vehicle_rates_setpoint_s>		_rates_sp_pub{ORB_ID(vehicle_rates_setpoint)};
 	uORB::Publication<vehicle_trajectory_bezier_s>		_trajectory_bezier_pub{ORB_ID(vehicle_trajectory_bezier)};
 	uORB::Publication<vehicle_trajectory_waypoint_s>	_trajectory_waypoint_pub{ORB_ID(vehicle_trajectory_waypoint)};
+	// uORB::Publication<vehicle_command_s>	_vehicle_command_pub{ORB_ID(vehicle_command)};	// AvesAID: Attachment
+	uORB::Publication<avesaid_status_s> _avesaid_status_pub{ORB_ID(avesaid_status)}; // AvesAID: flight
 
 #if !defined(CONSTRAINED_FLASH)
 	uORB::Publication<debug_array_s>			_debug_array_pub {ORB_ID(debug_array)};
@@ -363,8 +364,6 @@ private:
 	uORB::PublicationMulti<sensor_baro_s>			_sensor_baro_pub{ORB_ID(sensor_baro)};
 	uORB::PublicationMulti<sensor_gps_s>			_sensor_gps_pub{ORB_ID(sensor_gps)};
 	uORB::PublicationMulti<sensor_optical_flow_s>           _sensor_optical_flow_pub{ORB_ID(sensor_optical_flow)};
-	uORB::Publication<vehicle_command_s>	_vehicle_command_pub{ORB_ID(vehicle_command)};	// AvesAID: Attachment
-	uORB::Publication<avesaid_status_s> _avesaid_status_pub{ORB_ID(avesaid_status)}; // AvesAID: flight
 
 
 	// ORB publications (queue length > 1)
@@ -380,13 +379,15 @@ private:
 	uORB::Subscription	_vehicle_global_position_sub{ORB_ID(vehicle_global_position)};
 	uORB::Subscription	_vehicle_status_sub{ORB_ID(vehicle_status)};
 	uORB::Subscription	_autotune_attitude_control_status_sub{ORB_ID(autotune_attitude_control_status)};
-	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)}; // AvesAID: Attachment
+	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)}; // AvesAID: AVESAID_STATUS
+	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; //AvesAID: AVESAID_STATUS
+
 
 
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
 
-	vehicle_status_s	_vehicle_status{}; // AvesAID: Attachment
-	avesaid_status_s avesaid_status{}; //AvesAID: flight
+	vehicle_status_s	_vehicle_status{}; // AvesAID: AVESAID_STATUS
+	avesaid_status_s avesaid_status{}; //AvesAID: AVESAID_STATUS
 
 
 	bool _current_attachment_signal {false};

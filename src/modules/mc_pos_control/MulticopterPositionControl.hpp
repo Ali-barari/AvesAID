@@ -112,13 +112,13 @@ private:
 	uORB::Subscription _vehicle_constraints_sub{ORB_ID(vehicle_constraints)};
 	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)};
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
-	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; //AvesAID: flight
+	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; //AvesAID: AVESAID_STATUS
 
 
-	avesaid_status_s avesaid_status{}; //AvesAID: flight
+	avesaid_status_s avesaid_status{}; //AvesAID: AVESAID_STATUS
 
-	bool _prev_partial_attachment = false; //AvesAID: Attachment control
-	bool _prev_attachment = false; //AvesAID: Attachment control
+	bool _prev_partial_attachment = false; //AvesAID: AVESAID_STATUS
+	bool _prev_attachment = false; //AvesAID: AVESAID_STATUS
 
 	hrt_abstime _time_stamp_last_loop{0};		/**< time stamp of last loop iteration */
 	hrt_abstime _time_position_control_enabled{0};
