@@ -454,6 +454,7 @@ MavlinkReceiver::evaluate_target_ok(int command, int target_system, int target_c
 
 	switch (command) {
 
+	case MAV_CMD_START_FLIGHT: // AvesAID: Start flight: evaluate command
 	case MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES:
 	case MAV_CMD_REQUEST_PROTOCOL_VERSION:
 		/* broadcast and ignore component */
@@ -593,6 +594,12 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 
 	} else if (cmd_mavlink.command == MAV_CMD_REQUEST_STORAGE_INFORMATION) {
 		result = handle_request_message_command(MAVLINK_MSG_ID_STORAGE_INFORMATION);
+
+	} else if (cmd_mavlink.command == MAV_CMD_START_FLIGHT) { // AvesAID: Start flight: handle command
+		_mavlink.send_statustext_info("AvesAID: start flight command received");
+
+		result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
+		send_ack = true;
 
 	} else if (cmd_mavlink.command == MAV_CMD_SET_MESSAGE_INTERVAL) {
 		if (set_message_interval((int)roundf(cmd_mavlink.param1), cmd_mavlink.param2, cmd_mavlink.param3)) {
@@ -3424,6 +3431,14 @@ bool MavlinkReceiver::component_was_seen(int system_id, int component_id)
 		    && (component_id == 0 || _component_states[i].component_id == component_id)) {
 			return true;
 		}
+	}
+
+	// AvesAID: If not found and we have space, add it
+	if (_component_states_count < sizeof(_component_states) / sizeof(_component_states[0])) {
+		_component_states[_component_states_count].system_id = system_id;
+		_component_states[_component_states_count].component_id = component_id;
+		_component_states_count++;
+		return true;
 	}
 
 	return false;
