@@ -454,6 +454,7 @@ MavlinkReceiver::evaluate_target_ok(int command, int target_system, int target_c
 
 	switch (command) {
 
+	case MAV_CMD_START_FLIGHT: // AvesAID: Start flight: evaluate command
 	case MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES:
 	case MAV_CMD_REQUEST_PROTOCOL_VERSION:
 		/* broadcast and ignore component */
@@ -3424,6 +3425,13 @@ bool MavlinkReceiver::component_was_seen(int system_id, int component_id)
 		    && (component_id == 0 || _component_states[i].component_id == component_id)) {
 			return true;
 		}
+	}
+	// AvesAID: If not found and we have space, add it
+	if (_component_states_count < sizeof(_component_states) / sizeof(_component_states[0])) {
+		_component_states[_component_states_count].system_id = system_id;
+		_component_states[_component_states_count].component_id = component_id;
+		_component_states_count++;
+		return true;
 	}
 
 	return false;
