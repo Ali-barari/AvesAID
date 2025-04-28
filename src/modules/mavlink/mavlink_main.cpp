@@ -485,6 +485,11 @@ Mavlink::forward_message(const mavlink_message_t *msg, Mavlink *self)
 
 	for (Mavlink *inst : mavlink_module_instances) {
 		if (inst && (inst != self) && (inst->get_forwarding_on())) {
+			// AvesAID: We don't forward vision_pose for TELEM3 (MAV_2)
+			if (msg->msgid == MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE && inst == mavlink_module_instances[2]) {
+				// PX4_INFO("Skipping VISION_POSITION_ESTIMATE for TELEM3 (MAV_2)");
+				continue; // Skip forwarding for TELEM3
+			}
 			// Pass message only if target component was seen before
 			if (inst->_receiver.component_was_seen(target_system_id, target_component_id)) {
 				inst->pass_message(msg);
