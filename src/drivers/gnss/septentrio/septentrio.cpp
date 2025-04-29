@@ -1134,7 +1134,6 @@ int SeptentrioDriver::process_message()
 					_message_gps_state.satellites_used = 0;
 				}
 
->>>>>>> drivers/gps: extract Septentrio into new standalone drivers/gnss/septentrio module (#22904)
 				/* H and V accuracy are reported in 2DRMS, but based off the u-blox reporting we expect RMS.
 				 * Divide by 100 from cm to m and in addition divide by 2 to get RMS. */
 				_message_gps_state.eph = static_cast<float>(pvt_geodetic.h_accuracy) / 200.0f;
@@ -1543,7 +1542,6 @@ void SeptentrioDriver::publish()
 
 	_sensor_gps_pub.publish(_message_gps_state);
 
->>>>>>> drivers/gps: extract Septentrio into new standalone drivers/gnss/septentrio module (#22904)
 	if (_message_gps_state.spoofing_state != _spoofing_state) {
 
 		if (_message_gps_state.spoofing_state > sensor_gps_s::SPOOFING_STATE_NONE) {
