@@ -186,9 +186,7 @@ MulticopterRateControl::Run()
 
 			parameters_updated(); // Update parameters when attachment state changes
 			_prev_partial_attachment = avesaid_status.flag_mode_partial_attachment_enabled;
-			_prev_partial_attachment = avesaid_status.flag_mode_partial_attachment_enabled;
 
-			_prev_attachment = avesaid_status.flag_mode_attachment_enabled;
 			_prev_attachment = avesaid_status.flag_mode_attachment_enabled;
 		}
 
