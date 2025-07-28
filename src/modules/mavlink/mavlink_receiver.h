@@ -389,9 +389,12 @@ private:
 	vehicle_status_s	_vehicle_status{}; // AvesAID: AVESAID_STATUS
 	avesaid_status_s avesaid_status{}; //AvesAID: AVESAID_STATUS
 
+	// AvesAID: Timer for periodic 1Hz status publishing
+	hrt_abstime _last_avesaid_status_publish{0};
 
 	bool _current_attachment_signal {false};
 	bool _current_partial_attachment_signal {false};
+	bool _previous_payload_enabled {false}; // AvesAID: payload deployment
 
 	HealthAndArmingChecks	_health_and_arming_checks{this, _vehicle_status};
 	ModeManagement  	_mode_management{

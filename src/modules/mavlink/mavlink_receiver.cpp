@@ -454,7 +454,6 @@ MavlinkReceiver::evaluate_target_ok(int command, int target_system, int target_c
 
 	switch (command) {
 
-	case MAV_CMD_START_FLIGHT: // AvesAID: Start flight: evaluate command
 	case MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES:
 	case MAV_CMD_REQUEST_PROTOCOL_VERSION:
 		/* broadcast and ignore component */
@@ -462,8 +461,16 @@ MavlinkReceiver::evaluate_target_ok(int command, int target_system, int target_c
 		break;
 
 	default:
-		target_ok = (target_system == mavlink_system.sysid) && ((target_component == mavlink_system.compid)
-				|| (target_component == MAV_COMP_ID_ALL));
+		// AvesAID: Accept all custom SKYRON commands (40000-40019) and any other commands
+		// Custom commands defined in SKYRON.xml also use broadcast targeting
+		if (command >= 40000) {
+			/* broadcast and ignore component for custom SKYRON commands */
+			target_ok = (target_system == 0) || (target_system == mavlink_system.sysid);
+		} else {
+			/* standard targeting for all other commands */
+			target_ok = (target_system == mavlink_system.sysid) && ((target_component == mavlink_system.compid)
+					|| (target_component == MAV_COMP_ID_ALL));
+		}
 		break;
 	}
 
@@ -624,17 +631,17 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 
 		if ((uint16_t)roundf(cmd_mavlink.param1) == 1){
 
+			avesaid_status.flag_magnet_enabled = true;
 			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
 			send_ack = true;
 			_mavlink.send_statustext_info("AvesAID: Magnets on");
-			avesaid_status.flag_magnet_enabled = true;
 
 		} else if((uint16_t)roundf(cmd_mavlink.param1) == 0){
 
+			avesaid_status.flag_magnet_enabled = false;
 			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
 			send_ack = true;
 			_mavlink.send_statustext_info("AvesAID: Magnets off");
-			avesaid_status.flag_magnet_enabled = false;
 
 		}
 
@@ -676,8 +683,27 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 
 		}
 
-		// avesaid_status.timestamp = hrt_absolute_time();
-		// _avesaid_status_pub.publish(avesaid_status);
+
+
+	} else if(cmd_mavlink.command == MAV_CMD_PAYLOAD_STATUS){ // AvesAID: Payload Status: handle command
+
+		// Store previous status before changing
+		_previous_payload_enabled = avesaid_status.flag_payload_enabled;
+
+		if ((uint16_t)roundf(cmd_mavlink.param1) == 1){
+			avesaid_status.flag_payload_enabled = true;
+			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
+			send_ack = true;
+			_mavlink.send_statustext_info("AvesAID: Payload ON");
+
+		} else if((uint16_t)roundf(cmd_mavlink.param1) == 0){
+			avesaid_status.flag_payload_enabled = false;
+			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
+			send_ack = true;
+			_mavlink.send_statustext_info("AvesAID: Payload OFF");
+		}
+
+
 
 	} else if (cmd_mavlink.command == MAV_CMD_DO_AUTOTUNE_ENABLE) {
 
@@ -3409,6 +3435,15 @@ MavlinkReceiver::run()
 
 		if (_tune_publisher != nullptr) {
 			_tune_publisher->publish_next_tune(t);
+		}
+
+		// AvesAID: Periodic 1Hz publishing of AvesAID status
+		if (t - _last_avesaid_status_publish >= 1000000) { // 1 second = 1,000,000 microseconds
+			// Always get the latest status from uORB topic (in case other components updated it)
+			_avesaid_status_sub.update(&avesaid_status);
+			avesaid_status.timestamp = hrt_absolute_time();
+			_avesaid_status_pub.publish(avesaid_status);
+			_last_avesaid_status_publish = t;
 		}
 	}
 }

@@ -42,6 +42,8 @@
 #include "ActuatorEffectivenessRotors.hpp"
 
 #include "ActuatorEffectivenessTilts.hpp"
+#include <drivers/drv_hrt.h>
+#include <lib/systemlib/mavlink_log.h>
 
 using namespace matrix;
 
@@ -49,6 +51,9 @@ ActuatorEffectivenessRotors::ActuatorEffectivenessRotors(ModuleParams *parent, A
 		bool tilt_support)
 	: ModuleParams(parent), _axis_config(axis_config), _tilt_support(tilt_support)
 {
+	// Debug: Print when constructor is called
+	// PX4_INFO("AvesAID: ActuatorEffectivenessRotors constructor called!");
+
 	for (int i = 0; i < NUM_ROTORS_MAX; ++i) {
 		char buffer[17];
 		snprintf(buffer, sizeof(buffer), "CA_ROTOR%u_PX", i);
@@ -77,6 +82,12 @@ ActuatorEffectivenessRotors::ActuatorEffectivenessRotors(ModuleParams *parent, A
 			snprintf(buffer, sizeof(buffer), "CA_ROTOR%u_TILT", i);
 			_param_handles[i].tilt_index = param_find(buffer);
 		}
+	}
+
+	// AvesAID: Initialize payload status tracking
+	// avesaid_status_s avesaid_status{};
+	if (_avesaid_status_sub.update(&avesaid_status)) {
+		_prev_payload_enabled = avesaid_status.flag_payload_enabled;
 	}
 
 	updateParams();
@@ -123,6 +134,57 @@ void ActuatorEffectivenessRotors::updateParams()
 		} else {
 			_geometry.rotors[i].tilt_index = -1;
 		}
+	}
+
+	// AvesAID: Re-apply payload offset after loading base positions
+	// This ensures offset state is preserved when parameters are updated (e.g., during arm/disarm)
+	updateRotorPositions();
+
+	if (fabsf(_current_offset_factor) > 0.001f) {
+		mavlink_log_info(&_mavlink_log_pub, "AvesAID: Offset preserved after param update, factor=%.3f", (double)_current_offset_factor);
+	}
+}
+
+void ActuatorEffectivenessRotors::checkPayloadStatusChange() // AvesAID: payload deployment status check
+{
+	// Check for new AvesAID status updates
+	if (_avesaid_status_sub.update(&avesaid_status)) {
+		bool current_payload_enabled = avesaid_status.flag_payload_enabled;
+
+		// If payload status changed, apply immediate transition
+		if (current_payload_enabled != _prev_payload_enabled) {
+			_prev_payload_enabled = current_payload_enabled;
+
+			// Apply immediate transition
+			_current_offset_factor = current_payload_enabled ? 1.0f : 0.0f;
+			updateRotorPositions();
+			_payload_status_changed = true;
+
+			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Payload %s - immediate update for %d rotors",
+				current_payload_enabled ? "ENABLED" : "DISABLED", _geometry.num_rotors);
+		}
+	}
+}
+
+void ActuatorEffectivenessRotors::updateRotorPositions() // AvesAID: Apply current offset to all rotors
+{
+	float current_offset = _current_offset_factor * _param_ca_pld_offset_x.get();
+
+	for (int i = 0; i < _geometry.num_rotors; ++i) {
+		Vector3f &position = _geometry.rotors[i].position;
+
+		// Get the base X position from parameter
+		float base_position_x;
+		param_get(_param_handles[i].position_x, &base_position_x);
+
+		// Apply gradual offset based on current factor
+		position(0) = base_position_x - current_offset;
+	}
+
+	// Debug log when offset is significant (payload enabled or during transition)
+	if (fabsf(current_offset) > 0.001f) {
+		mavlink_log_info(&_mavlink_log_pub, "AvesAID: Rotor positions updated, offset=%.3f, factor=%.3f",
+		         (double)current_offset, (double)_current_offset_factor);
 	}
 }
 
@@ -302,6 +364,12 @@ ActuatorEffectivenessRotors::getEffectivenessMatrix(Configuration &configuration
 		EffectivenessUpdateReason external_update)
 {
 	if (external_update == EffectivenessUpdateReason::NO_EXTERNAL_UPDATE) {
+		// AvesAID: Check if payload status changed and matrix needs regeneration
+		if (_payload_status_changed) {
+			_payload_status_changed = false; // Reset flag
+			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Regenerating effectiveness matrix due to payload change");
+			return addActuators(configuration); // Regenerate matrix with new rotor positions
+		}
 		return false;
 	}
 

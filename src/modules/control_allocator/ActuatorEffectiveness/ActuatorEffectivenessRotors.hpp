@@ -46,6 +46,7 @@
 #include <px4_platform_common/module_params.h>
 #include <uORB/Subscription.hpp>
 #include <uORB/SubscriptionInterval.hpp>
+#include <uORB/topics/avesaid_status.h> // AvesAID status
 
 class ActuatorEffectivenessTilts;
 
@@ -130,6 +131,18 @@ public:
 	uint32_t getUpwardsMotors() const;
 	uint32_t getForwardsMotors() const;
 
+	orb_advert_t _mavlink_log_pub{nullptr}; // AvesAID: PAyload deployment: mavlink log publisher
+		/**
+	 * AvesAID: Check for payload status changes and update rotor positions if needed.
+	 * This allows real-time position updates during flight when magnets turn off.
+	 */
+	void checkPayloadStatusChange(); //AvesAID: payload deployment:
+
+	/**
+	 * AvesAID: Apply current offset factor to all rotor positions
+	 */
+	void updateRotorPositions(); //AvesAID: apply offset to rotors
+
 private:
 	void updateParams() override;
 	const AxisConfiguration _axis_config;
@@ -150,7 +163,18 @@ private:
 
 	Geometry _geometry{};
 
+	// AvesAID status subscription and tracking
+	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; // AvesAID status subscription
+	avesaid_status_s avesaid_status{}; //AvesAID: AVESAID_STATUS
+	bool _prev_payload_enabled{false}; //AvesAID: payload deployment: previous payload enabled status
+	bool _payload_status_changed{false}; //AvesAID: flag to trigger effectiveness matrix update
+
+	// AvesAID: Payload offset variables
+	float _current_offset_factor{0.0f}; //AvesAID: current offset factor (0.0 to 1.0)
+
+
 	DEFINE_PARAMETERS(
-		(ParamInt<px4::params::CA_ROTOR_COUNT>) _param_ca_rotor_count
+		(ParamInt<px4::params::CA_ROTOR_COUNT>) _param_ca_rotor_count,
+		(ParamFloat<px4::params::CA_PLD_OFFSET_X>) _param_ca_pld_offset_x // AvesAID: payload offset in X direction
 	)
 };

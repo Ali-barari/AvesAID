@@ -123,6 +123,17 @@ parameters:
                 11: '11'
                 12: '12'
             default: 0
+        CA_PLD_OFFSET_X:
+            description:
+                short: Payload X-axis offset when enabled
+                long: X-axis position offset applied to all rotors when payload is deployed/enabled. This compensates for center of gravity shift when payload is attached.
+            type: float
+            decimal: 3
+            increment: 0.01
+            unit: m
+            min: -1.0
+            max: 1.0
+            default: 0.0
         CA_ROTOR${i}_PX:
             description:
                 short: Position of rotor ${i} along X body axis relative to center of gravity

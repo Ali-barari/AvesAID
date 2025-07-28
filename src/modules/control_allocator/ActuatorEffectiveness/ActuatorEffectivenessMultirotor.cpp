@@ -46,11 +46,20 @@ ActuatorEffectivenessMultirotor::getEffectivenessMatrix(Configuration &configura
 		EffectivenessUpdateReason external_update)
 {
 	if (external_update == EffectivenessUpdateReason::NO_EXTERNAL_UPDATE) {
-		return false;
+		// AvesAID: Check for payload status changes and let rotors handle matrix regeneration if needed
+		return _mc_rotors.getEffectivenessMatrix(configuration, external_update);
 	}
 
 	// Motors
 	const bool rotors_added_successfully = _mc_rotors.addActuators(configuration);
 
 	return rotors_added_successfully;
+}
+
+void ActuatorEffectivenessMultirotor::updateSetpoint(const matrix::Vector<float, NUM_AXES> &control_sp,
+		int matrix_index, ActuatorVector &actuator_sp, const matrix::Vector<float, NUM_ACTUATORS> &actuator_min,
+		const matrix::Vector<float, NUM_ACTUATORS> &actuator_max)
+{
+	// AvesAID: Check for payload status changes during each control update
+	_mc_rotors.checkPayloadStatusChange();
 }

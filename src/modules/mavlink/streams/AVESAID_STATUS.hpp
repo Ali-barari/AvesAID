@@ -72,6 +72,7 @@ private:
             msg.flag_magnet_enabled = avesaid_status.flag_magnet_enabled;
             msg.flag_height_source_baro_enabled = avesaid_status.flag_height_source_baro_enabled;
             msg.flag_height_source_slam_enabled = avesaid_status.flag_height_source_slam_enabled;
+            msg.flag_payload_enabled = avesaid_status.flag_payload_enabled;
 
             // Send the message
             mavlink_msg_avesaid_status_send_struct(_mavlink->get_channel(), &msg);
