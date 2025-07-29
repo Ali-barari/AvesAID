@@ -1,7 +1,3 @@
-[submodule "src/modules/mavlink/mavlink"]
-	path = src/modules/mavlink/mavlink
-	url = https://github.com/mavlink/mavlink.git
-	branch = master
 [submodule "src/drivers/uavcan/libuavcan"]
 	path = src/drivers/uavcan/libuavcan
 	url = https://github.com/dronecan/libuavcan.git
@@ -83,3 +79,6 @@
 [submodule "boards/modalai/voxl2/libfc-sensor-api"]
 	path = boards/modalai/voxl2/libfc-sensor-api
 	url = https://gitlab.com/voxl-public/voxl-sdk/core-libs/libfc-sensor-api.git
+[submodule "src/modules/mavlink/mavlink"]
+	path = src/modules/mavlink/mavlink
+	url = https://github.com/AvesAID/mavlink.git
