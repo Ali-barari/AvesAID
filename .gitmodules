@@ -82,3 +82,4 @@
 [submodule "src/modules/mavlink/mavlink"]
 	path = src/modules/mavlink/mavlink
 	url = https://github.com/AvesAID/mavlink.git
+	branch = master
