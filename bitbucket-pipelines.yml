@@ -29,7 +29,18 @@ pipelines:
                 python3-setuptools python3-wheel wget curl unzip file xxd
             # Install Python dependencies for PX4 build system
             - pip3 install --upgrade pip
-            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml
+            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml symforce-sym
+            # Configure git for submodules (use HTTPS instead of SSH)
+            - git config --global url."https://github.com/".insteadOf "git@github.com:"
+            - git config --global url."https://".insteadOf "git://"
+            # Initialize and update submodules with fallback to upstream
+            - git submodule sync --recursive || true
+            - git submodule update --init --recursive --depth=1 || git submodule update --init --recursive --force || true
+            # Fix submodule URLs to use correct repositories
+            - cd src/modules/mavlink/mavlink && git remote set-url origin https://github.com/mavlink/mavlink.git || true
+            - cd ../../../.. && git submodule update --remote src/modules/mavlink/mavlink || true
+            - cd src/lib/events/libevents && git remote set-url origin https://github.com/PX4/libevents.git || true
+            - cd ../../../.. && git submodule update --remote src/lib/events/libevents || true
             # Install ARM toolchain
             - mkdir -p /opt/gcc-arm-none-eabi && cd /opt/gcc-arm-none-eabi
             - wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
@@ -130,7 +141,18 @@ pipelines:
                 python3-setuptools python3-wheel wget curl unzip file xxd
             # Install Python dependencies for PX4 build system
             - pip3 install --upgrade pip
-            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml
+            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml symforce-sym
+            # Configure git for submodules (use HTTPS instead of SSH)
+            - git config --global url."https://github.com/".insteadOf "git@github.com:"
+            - git config --global url."https://".insteadOf "git://"
+            # Initialize and update submodules with fallback to upstream
+            - git submodule sync --recursive || true
+            - git submodule update --init --recursive --depth=1 || git submodule update --init --recursive --force || true
+            # Fix submodule URLs to use correct repositories
+            - cd src/modules/mavlink/mavlink && git remote set-url origin https://github.com/mavlink/mavlink.git || true
+            - cd ../../../.. && git submodule update --remote src/modules/mavlink/mavlink || true
+            - cd src/lib/events/libevents && git remote set-url origin https://github.com/PX4/libevents.git || true
+            - cd ../../../.. && git submodule update --remote src/lib/events/libevents || true
             # Install ARM toolchain
             - mkdir -p /opt/gcc-arm-none-eabi && cd /opt/gcc-arm-none-eabi
             - wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
@@ -164,7 +186,18 @@ pipelines:
                 python3-setuptools python3-wheel wget curl unzip file xxd
             # Install Python dependencies for PX4 build system
             - pip3 install --upgrade pip
-            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml
+            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml symforce-sym
+            # Configure git for submodules (use HTTPS instead of SSH)
+            - git config --global url."https://github.com/".insteadOf "git@github.com:"
+            - git config --global url."https://".insteadOf "git://"
+            # Initialize and update submodules with fallback to upstream
+            - git submodule sync --recursive || true
+            - git submodule update --init --recursive --depth=1 || git submodule update --init --recursive --force || true
+            # Fix submodule URLs to use correct repositories
+            - cd src/modules/mavlink/mavlink && git remote set-url origin https://github.com/mavlink/mavlink.git || true
+            - cd ../../../.. && git submodule update --remote src/modules/mavlink/mavlink || true
+            - cd src/lib/events/libevents && git remote set-url origin https://github.com/PX4/libevents.git || true
+            - cd ../../../.. && git submodule update --remote src/lib/events/libevents || true
             # Install ARM toolchain
             - mkdir -p /opt/gcc-arm-none-eabi && cd /opt/gcc-arm-none-eabi
             - wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
@@ -199,7 +232,18 @@ pipelines:
             - apt-get update && apt-get install -y build-essential cmake git python3 python3-pip
             # Install Python dependencies for PX4 build system
             - pip3 install --upgrade pip
-            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml
+            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml symforce-sym
+            # Configure git for submodules (use HTTPS instead of SSH)
+            - git config --global url."https://github.com/".insteadOf "git@github.com:"
+            - git config --global url."https://".insteadOf "git://"
+            # Initialize and update submodules with fallback to upstream
+            - git submodule sync --recursive || true
+            - git submodule update --init --recursive --depth=1 || git submodule update --init --recursive --force || true
+            # Fix submodule URLs to use correct repositories
+            - cd src/modules/mavlink/mavlink && git remote set-url origin https://github.com/mavlink/mavlink.git || true
+            - cd ../../../.. && git submodule update --remote src/modules/mavlink/mavlink || true
+            - cd src/lib/events/libevents && git remote set-url origin https://github.com/PX4/libevents.git || true
+            - cd ../../../.. && git submodule update --remote src/lib/events/libevents || true
             - echo "🔍 Validating Pull Request for AvesAID..."
             - echo "PR ID:" $BITBUCKET_PR_ID
             - echo "Target Branch:" $BITBUCKET_PR_DESTINATION_BRANCH
@@ -226,7 +270,18 @@ pipelines:
                 python3-setuptools python3-wheel wget curl unzip file xxd
             # Install Python dependencies for PX4 build system
             - pip3 install --upgrade pip
-            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml
+            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml symforce-sym
+            # Configure git for submodules (use HTTPS instead of SSH)
+            - git config --global url."https://github.com/".insteadOf "git@github.com:"
+            - git config --global url."https://".insteadOf "git://"
+            # Initialize and update submodules with fallback to upstream
+            - git submodule sync --recursive || true
+            - git submodule update --init --recursive --depth=1 || git submodule update --init --recursive --force || true
+            # Fix submodule URLs to use correct repositories
+            - cd src/modules/mavlink/mavlink && git remote set-url origin https://github.com/mavlink/mavlink.git || true
+            - cd ../../../.. && git submodule update --remote src/modules/mavlink/mavlink || true
+            - cd src/lib/events/libevents && git remote set-url origin https://github.com/PX4/libevents.git || true
+            - cd ../../../.. && git submodule update --remote src/lib/events/libevents || true
             # Install ARM toolchain
             - mkdir -p /opt/gcc-arm-none-eabi && cd /opt/gcc-arm-none-eabi
             - wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
