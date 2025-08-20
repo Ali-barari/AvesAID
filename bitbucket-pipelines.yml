@@ -3,6 +3,9 @@
 
 image: ubuntu:20.04
 
+options:
+  docker: true
+
 definitions:
   caches:
     ccache: ~/.ccache
@@ -23,8 +26,13 @@ pipelines:
             - ccache
             - apt
           script:
+            # Set timezone non-interactively to avoid prompts
+            - export DEBIAN_FRONTEND=noninteractive
+            - ln -fs /usr/share/zoneinfo/UTC /etc/localtime
+            - echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections
+            - echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections
             # Install dependencies
-            - apt-get update && apt-get install -y --no-install-recommends
+            - apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
                 build-essential cmake git ninja-build ccache python3 python3-pip
                 python3-setuptools python3-wheel wget curl unzip file xxd
             # Install Python dependencies for PX4 build system
@@ -77,7 +85,7 @@ pipelines:
             - apt
             - pip
           script:
-            - apt-get update && apt-get install -y python3 python3-pip git
+            - apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-pip git
             - pip3 install pycodestyle pyflakes
             - echo "🔍 Running AvesAID code quality checks..."
             - find src/modules -name "*.py" -exec pycodestyle --max-line-length=120 {} \; || echo "No Python files found"
@@ -88,7 +96,7 @@ pipelines:
           name: '🛡️ Security Scan'
           size: 2x
           script:
-            - apt-get update && apt-get install -y git
+            - apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y git
             - echo "🛡️ Running security scan for AvesAID..."
             - echo "Checking for hardcoded secrets..."
             - ! grep -r -E "(password|secret|key)" src/ --include="*.c" --include="*.cpp" --include="*.h" || echo "Review potential security issues"
@@ -101,7 +109,7 @@ pipelines:
           - apt
           - pip
         script:
-          - apt-get update && apt-get install -y python3 python3-pip git build-essential cmake
+          - apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-pip git build-essential cmake
           - pip3 install pytest jinja2
           - echo "🧪 Running AvesAID tests..."
           - cd $BITBUCKET_CLONE_DIR
@@ -139,8 +147,13 @@ pipelines:
             - ccache
             - apt
           script:
+            # Set timezone non-interactively to avoid prompts
+            - export DEBIAN_FRONTEND=noninteractive
+            - ln -fs /usr/share/zoneinfo/UTC /etc/localtime
+            - echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections
+            - echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections
             # Install dependencies
-            - apt-get update && apt-get install -y --no-install-recommends
+            - apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
                 build-essential cmake git ninja-build ccache python3 python3-pip
                 python3-setuptools python3-wheel wget curl unzip file xxd
             # Install Python dependencies for PX4 build system
@@ -186,8 +199,13 @@ pipelines:
             - ccache
             - apt
           script:
+            # Set timezone non-interactively to avoid prompts
+            - export DEBIAN_FRONTEND=noninteractive
+            - ln -fs /usr/share/zoneinfo/UTC /etc/localtime
+            - echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections
+            - echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections
             # Install dependencies
-            - apt-get update && apt-get install -y --no-install-recommends
+            - apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
                 build-essential cmake git ninja-build ccache python3 python3-pip
                 python3-setuptools python3-wheel wget curl unzip file xxd
             # Install Python dependencies for PX4 build system
@@ -237,7 +255,7 @@ pipelines:
           caches:
             - apt
           script:
-            - apt-get update && apt-get install -y build-essential cmake git python3 python3-pip
+            - apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential cmake git python3 python3-pip
             # Install Python dependencies for PX4 build system
             - pip3 install --upgrade pip
             - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml symforce-sym
@@ -274,8 +292,13 @@ pipelines:
             - ccache
             - apt
           script:
+            # Set timezone non-interactively to avoid prompts
+            - export DEBIAN_FRONTEND=noninteractive
+            - ln -fs /usr/share/zoneinfo/UTC /etc/localtime
+            - echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections
+            - echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections
             # Install dependencies
-            - apt-get update && apt-get install -y --no-install-recommends
+            - apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
                 build-essential cmake git ninja-build ccache python3 python3-pip
                 python3-setuptools python3-wheel wget curl unzip file xxd
             # Install Python dependencies for PX4 build system
