@@ -25,6 +25,8 @@ pipelines:
           - apt-get update && apt-get install -y gcc-arm-none-eabi || echo "apt install failed"
           # Verify toolchain after installation
           - which arm-none-eabi-gcc && arm-none-eabi-gcc --version
+          # Install required Python dependencies
+          - pip3 install symforce
           - make px4_fmu-v6c_default
           - make px4_fmu-v6x_default
         artifacts:
