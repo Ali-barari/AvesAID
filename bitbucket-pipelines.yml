@@ -15,6 +15,16 @@ pipelines:
           - docker
         script:
           - echo "🔄 Building PX4 firmware for Pixhawk 6C and 6X..."
+          # Ensure ARM toolchain is in PATH
+          - export PATH="/usr/lib/gcc/arm-none-eabi/bin:$PATH"
+          - export PATH="/opt/gcc-arm-none-eabi/bin:$PATH"
+          # Check if ARM toolchain is available
+          - which arm-none-eabi-gcc || echo "ARM toolchain not found in standard locations"
+          - arm-none-eabi-gcc --version || echo "ARM GCC not working, will try to install"
+          # Install ARM toolchain if not available
+          - apt-get update && apt-get install -y gcc-arm-none-eabi || echo "apt install failed"
+          # Verify toolchain after installation
+          - which arm-none-eabi-gcc && arm-none-eabi-gcc --version
           - make px4_fmu-v6c_default
           - make px4_fmu-v6x_default
         artifacts:
