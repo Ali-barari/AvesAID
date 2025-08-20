@@ -27,6 +27,9 @@ pipelines:
             - apt-get update && apt-get install -y --no-install-recommends
                 build-essential cmake git ninja-build ccache python3 python3-pip
                 python3-setuptools python3-wheel wget curl unzip file xxd
+            # Install Python dependencies for PX4 build system
+            - pip3 install --upgrade pip
+            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml
             # Install ARM toolchain
             - mkdir -p /opt/gcc-arm-none-eabi && cd /opt/gcc-arm-none-eabi
             - wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
@@ -125,6 +128,9 @@ pipelines:
             - apt-get update && apt-get install -y --no-install-recommends
                 build-essential cmake git ninja-build ccache python3 python3-pip
                 python3-setuptools python3-wheel wget curl unzip file xxd
+            # Install Python dependencies for PX4 build system
+            - pip3 install --upgrade pip
+            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml
             # Install ARM toolchain
             - mkdir -p /opt/gcc-arm-none-eabi && cd /opt/gcc-arm-none-eabi
             - wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
@@ -156,6 +162,9 @@ pipelines:
             - apt-get update && apt-get install -y --no-install-recommends
                 build-essential cmake git ninja-build ccache python3 python3-pip
                 python3-setuptools python3-wheel wget curl unzip file xxd
+            # Install Python dependencies for PX4 build system
+            - pip3 install --upgrade pip
+            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml
             # Install ARM toolchain
             - mkdir -p /opt/gcc-arm-none-eabi && cd /opt/gcc-arm-none-eabi
             - wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
@@ -187,7 +196,10 @@ pipelines:
           caches:
             - apt
           script:
-            - apt-get update && apt-get install -y build-essential cmake git python3
+            - apt-get update && apt-get install -y build-essential cmake git python3 python3-pip
+            # Install Python dependencies for PX4 build system
+            - pip3 install --upgrade pip
+            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml
             - echo "🔍 Validating Pull Request for AvesAID..."
             - echo "PR ID:" $BITBUCKET_PR_ID
             - echo "Target Branch:" $BITBUCKET_PR_DESTINATION_BRANCH
@@ -212,6 +224,9 @@ pipelines:
             - apt-get update && apt-get install -y --no-install-recommends
                 build-essential cmake git ninja-build ccache python3 python3-pip
                 python3-setuptools python3-wheel wget curl unzip file xxd
+            # Install Python dependencies for PX4 build system
+            - pip3 install --upgrade pip
+            - pip3 install kconfiglib jinja2 pyserial cerberus pyyaml packaging toml
             # Install ARM toolchain
             - mkdir -p /opt/gcc-arm-none-eabi && cd /opt/gcc-arm-none-eabi
             - wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
