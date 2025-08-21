@@ -9,6 +9,7 @@ on:
   push:
     branches:
     - 'main'
+    - 'avesaid-main'
     - 'stable'
     - 'beta'
     - 'release/*'
@@ -57,11 +58,16 @@ jobs:
 
       - name: Initialize and update submodules with Avestec fork
         run: |
+          # First ensure the correct submodule URL is set
+          git config submodule.src/modules/mavlink/mavlink.url https://github.com/Avestec/mavlink.git
+          git config submodule.src/modules/mavlink/mavlink.branch master
           git submodule update --init --recursive --force
-          # Ensure we're using the Avestec mavlink fork with SKYRON.xml
+          # Verify we're using the Avestec mavlink fork with SKYRON.xml
           cd src/modules/mavlink/mavlink
           git remote -v
           git log --oneline -5
+          # Check if SKYRON.xml exists
+          ls -la message_definitions/v1.0/SKYRON.xml || echo "WARNING: SKYRON.xml not found!"
 
       - name: ccache setup keys
         uses: actions/cache@v4
