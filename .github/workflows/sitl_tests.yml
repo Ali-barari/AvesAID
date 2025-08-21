@@ -36,6 +36,14 @@ jobs:
       - name: Git Ownership Workaround
         run: git config --system --add safe.directory '*'
 
+      - name: Initialize and update submodules with Avestec fork
+        run: |
+          git submodule update --init --recursive --force
+          # Ensure we're using the Avestec mavlink fork with SKYRON.xml
+          cd src/modules/mavlink/mavlink
+          git remote -v
+          git log --oneline -5
+
       - id: set-timestamp
         name: Set timestamp for cache
         run: echo "::set-output name=timestamp::$(date +"%Y%m%d%H%M%S")"
