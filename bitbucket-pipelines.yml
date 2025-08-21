@@ -15,6 +15,8 @@ pipelines:
           - docker
         script:
           - echo "🔄 Building PX4 firmware for Pixhawk 6C and 6X..."
+          # Ensure all submodules are properly initialized and updated
+          - git submodule update --init --recursive --force
           # Ensure ARM toolchain is in PATH
           - export PATH="/usr/lib/gcc/arm-none-eabi/bin:$PATH"
           - export PATH="/opt/gcc-arm-none-eabi/bin:$PATH"
@@ -29,6 +31,13 @@ pipelines:
           - which arm-none-eabi-gcc && arm-none-eabi-gcc --version
           # Install required Python dependencies
           - pip3 install symforce
+          # Install DSDL generation dependencies
+          - pip3 install empy pexpect future pyserial
+          # Ensure Python environment is ready for DSDL compilation
+          - python3 --version
+          - which python3
+          # Ensure DSDL files are generated (DroneCAN message definitions)
+          - python3 -c "import dronecan_dsdlc" || pip3 install dronecan
           # Set compiler flags to be less strict (allow warnings that would be errors)
           - export CXXFLAGS="-Wno-error" 
           - export CFLAGS="-Wno-error"
