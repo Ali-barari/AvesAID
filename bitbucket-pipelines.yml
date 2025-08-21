@@ -43,7 +43,7 @@ pipelines:
           - cd src/drivers/uavcan && python3 libuavcan/libuavcan/dsdl_compiler/libuavcan_dsdlc --outdir ../../../build/px4_fmu-v6c_default/src/drivers/uavcan/include/dsdlc_generated libuavcan/dsdl/ardupilot libuavcan/dsdl/com libuavcan/dsdl/cuav libuavcan/dsdl/dronecan libuavcan/dsdl/uavcan || echo "DSDL generation failed, continuing with build"
           - cd ../../..
           # Set compiler flags to be less strict (allow warnings that would be errors)
-          - export CXXFLAGS="-Wno-error" 
+          - export CXXFLAGS="-Wno-error"
           - export CFLAGS="-Wno-error"
           # Temporarily disable remote ID files that require DSDL generation
           - sed -i 's/remoteid\.cpp/#remoteid.cpp/' src/drivers/uavcan/CMakeLists.txt
