@@ -49,8 +49,11 @@ pipelines:
           - sed -i 's/remoteid\.cpp/#remoteid.cpp/' src/drivers/uavcan/CMakeLists.txt
           - sed -i 's/remoteid\.hpp/#remoteid.hpp/' src/drivers/uavcan/CMakeLists.txt
           - sed -i 's/#include "remoteid.hpp"/\/\/#include "remoteid.hpp"/' src/drivers/uavcan/uavcan_main.hpp
-          # Disable the CONFIG_UAVCAN_REMOTEID_CONTROLLER define to skip all remote ID code
-          - echo "#undef CONFIG_UAVCAN_REMOTEID_CONTROLLER" >> src/drivers/uavcan/uavcan_main.hpp
+          # Disable remote ID controller declarations by commenting out the conditional blocks
+          - sed -i 's/#if defined(CONFIG_UAVCAN_REMOTEID_CONTROLLER)/#if 0 \/\/ disabled CONFIG_UAVCAN_REMOTEID_CONTROLLER/' src/drivers/uavcan/uavcan_main.hpp
+          - sed -i 's/#if defined(CONFIG_UAVCAN_REMOTEID_CONTROLLER)/#if 0 \/\/ disabled CONFIG_UAVCAN_REMOTEID_CONTROLLER/' src/drivers/uavcan/uavcan_main.cpp
+          # Add NuttX build target to ensure proper configuration
+          - make px4_fmu-v6c_default nuttx_configure
           # Build with explicit flags to disable -Werror
           - make px4_fmu-v6c_default CXXFLAGS="-Wno-error" CFLAGS="-Wno-error" || make px4_fmu-v6c_default VERBOSE=1
           - make px4_fmu-v6x_default CXXFLAGS="-Wno-error" CFLAGS="-Wno-error" || make px4_fmu-v6x_default VERBOSE=1
