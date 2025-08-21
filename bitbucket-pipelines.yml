@@ -48,6 +48,7 @@ pipelines:
           # Temporarily disable remote ID files that require DSDL generation
           - sed -i 's/remoteid\.cpp/#remoteid.cpp/' src/drivers/uavcan/CMakeLists.txt
           - sed -i 's/remoteid\.hpp/#remoteid.hpp/' src/drivers/uavcan/CMakeLists.txt
+          - sed -i 's/#include "remoteid.hpp"/\/\/#include "remoteid.hpp"/' src/drivers/uavcan/uavcan_main.hpp
           # Build with explicit flags to disable -Werror
           - make px4_fmu-v6c_default CXXFLAGS="-Wno-error" CFLAGS="-Wno-error" || make px4_fmu-v6c_default VERBOSE=1
           - make px4_fmu-v6x_default CXXFLAGS="-Wno-error" CFLAGS="-Wno-error" || make px4_fmu-v6x_default VERBOSE=1
