@@ -102,6 +102,13 @@ jobs:
             # AvesAID: Comment out remoteid include in uavcan_main.hpp
             sed -i 's/#include "remoteid\.hpp"/\/\/#include "remoteid.hpp" \/\/ AvesAID: Disabled for hardware build/' src/drivers/uavcan/uavcan_main.hpp || true
             
+            # AvesAID: Comment out UavcanRemoteIDController member variable declaration
+            sed -i 's/UavcanRemoteIDController _remoteid_controller;/\/\/UavcanRemoteIDController _remoteid_controller; \/\/ AvesAID: Disabled for hardware build/' src/drivers/uavcan/uavcan_main.hpp || true
+            
+            # AvesAID: Comment out remote ID controller initialization in uavcan_main.cpp
+            sed -i 's/_remoteid_controller(_node),/\/\/_remoteid_controller(_node), \/\/ AvesAID: Disabled for hardware build/' src/drivers/uavcan/uavcan_main.cpp || true
+            sed -i 's/ret = _remoteid_controller\.init();/\/\/ret = _remoteid_controller.init(); \/\/ AvesAID: Disabled for hardware build/' src/drivers/uavcan/uavcan_main.cpp || true
+            
             echo "Remote ID bypass applied, building firmware..."
             make ${{ matrix.target }}
 
