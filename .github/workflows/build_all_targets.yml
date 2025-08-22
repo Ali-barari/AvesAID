@@ -9,7 +9,6 @@ on:
   push:
     branches:
     - 'main'
-    - 'avesaid-main'
     - 'stable'
     - 'beta'
     - 'release/*'
