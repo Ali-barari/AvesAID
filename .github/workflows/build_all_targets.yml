@@ -3,7 +3,7 @@
 #   and comment the "runs-on: [runs-on,runner=..." lines.
 # - If you would like to duplicate this setup try setting up "RunsOn" on your own AWS account try https://runs-on.com
 
-name: Build AvesAID Hardware Targets  # AvesAID: Focus on v6c and v6x targets only
+name: Build AvesAID Hardware Targets  # AvesAID: Primary workflow - v6c and v6x hardware only (SITL disabled)
 
 on:
   push:
@@ -28,9 +28,7 @@ jobs:
       matrix:
         target: [
           "px4_fmu-v6c_default",     # AvesAID: Primary hardware target
-          "px4_fmu-v6x_default",     # AvesAID: Secondary hardware target  
-          "px4_fmu-v6c_bootloader",  # AvesAID: Bootloader for v6c
-          "px4_fmu-v6x_bootloader"   # AvesAID: Bootloader for v6x
+          "px4_fmu-v6x_default"      # AvesAID: Secondary hardware target
         ]
     steps:
       - uses: actions/checkout@v4
