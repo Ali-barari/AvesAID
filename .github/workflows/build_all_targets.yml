@@ -20,7 +20,8 @@ on:
 jobs:
   build_avesaid_targets:  # AvesAID: Custom job for v6c and v6x hardware targets
     name: Build ${{ matrix.target }}
-    runs-on: [runs-on,runner=8cpu-linux-x64,image=ubuntu22-full-x64,"run-id=${{ github.run_id }}"]
+    runs-on: ubuntu-latest  # AvesAID: Use standard GitHub runners to avoid queuing
+    # runs-on: [runs-on,runner=8cpu-linux-x64,image=ubuntu22-full-x64,"run-id=${{ github.run_id }}"]
     container:
       image: px4io/px4-dev-nuttx-focal:2022-08-12
     strategy:
