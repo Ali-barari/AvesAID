@@ -41,27 +41,32 @@ jobs:
 
       - name: Initialize and update submodules with Avestec fork  # AvesAID: Custom submodule initialization for Avestec mavlink fork
         run: |
-          # AvesAID: Force clean submodule state and ensure correct URL for custom MAVLink messages
-          git submodule deinit -f src/modules/mavlink/mavlink || true
-          git rm --cached src/modules/mavlink/mavlink || true
-          rm -rf src/modules/mavlink/mavlink || true
-          # AvesAID: Set correct submodule configuration for Avestec fork with SKYRON.xml
-          git config submodule.src/modules/mavlink/mavlink.url https://github.com/Avestec/mavlink.git
-          git config submodule.src/modules/mavlink/mavlink.branch master
-          # AvesAID: Initialize with correct fork containing custom AvesAID messages
-          git submodule update --init --recursive --force src/modules/mavlink/mavlink
+          # AvesAID: Robust submodule initialization for custom MAVLink messages
+          echo "Setting up Avestec mavlink fork..."
+          
+          # AvesAID: Ensure .gitmodules points to correct URL
+          git config -f .gitmodules submodule.src/modules/mavlink/mavlink.url https://github.com/Avestec/mavlink.git
+          git config -f .gitmodules submodule.src/modules/mavlink/mavlink.branch master
+          
+          # AvesAID: Initialize all submodules (this creates the directory structure)
+          git submodule sync --recursive
+          git submodule update --init --recursive --force
+          
           # AvesAID: Verify we're using the Avestec mavlink fork with SKYRON.xml
           cd src/modules/mavlink/mavlink
           echo "Current mavlink submodule info:"
           git remote -v
           git log --oneline -5
+          
           # AvesAID: Check if SKYRON.xml exists with custom MAVLINK_MSG_ID_AVESAID_STATUS and MAV_CMD_MAGNET
           if [ -f message_definitions/v1.0/SKYRON.xml ]; then
             echo "✅ SKYRON.xml found!"
             ls -la message_definitions/v1.0/SKYRON.xml
+            echo "✅ AvesAID custom messages available for build"
           else
             echo "❌ SKYRON.xml NOT found! Available message definitions:"
             ls -la message_definitions/v1.0/ | head -10
+            echo "❌ This will cause MAVLINK_MSG_ID_AVESAID_STATUS compilation errors"
             exit 1
           fi
 
