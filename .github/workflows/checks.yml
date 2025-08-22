@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - 'main'
+    - 'avesaid-main'
   pull_request:
     branches:
     - '*'
@@ -39,16 +40,29 @@ jobs:
 
     - name: Initialize and update submodules with Avestec fork
       run: |
-        # First ensure the correct submodule URL is set
+        # Force clean submodule state and ensure correct URL
+        git submodule deinit -f src/modules/mavlink/mavlink || true
+        git rm --cached src/modules/mavlink/mavlink || true
+        rm -rf src/modules/mavlink/mavlink || true
+        # Set correct submodule configuration  
         git config submodule.src/modules/mavlink/mavlink.url https://github.com/Avestec/mavlink.git
         git config submodule.src/modules/mavlink/mavlink.branch master
-        git submodule update --init --recursive --force
+        # Initialize with correct fork
+        git submodule update --init --recursive --force src/modules/mavlink/mavlink
         # Verify we're using the Avestec mavlink fork with SKYRON.xml
         cd src/modules/mavlink/mavlink
+        echo "Current mavlink submodule info:"
         git remote -v
         git log --oneline -5
         # Check if SKYRON.xml exists
-        ls -la message_definitions/v1.0/SKYRON.xml || echo "WARNING: SKYRON.xml not found!"
+        if [ -f message_definitions/v1.0/SKYRON.xml ]; then
+          echo "✅ SKYRON.xml found!"
+          ls -la message_definitions/v1.0/SKYRON.xml
+        else
+          echo "❌ SKYRON.xml NOT found! Available message definitions:"
+          ls -la message_definitions/v1.0/ | head -10
+          exit 1
+        fi
 
     - name: check environment
       run: |
