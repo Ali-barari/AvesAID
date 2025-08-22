@@ -43,21 +43,21 @@ jobs:
         run: |
           # AvesAID: Robust submodule initialization for custom MAVLink messages
           echo "Setting up Avestec mavlink fork..."
-          
+
           # AvesAID: Ensure .gitmodules points to correct URL
           git config -f .gitmodules submodule.src/modules/mavlink/mavlink.url https://github.com/Avestec/mavlink.git
           git config -f .gitmodules submodule.src/modules/mavlink/mavlink.branch master
-          
+
           # AvesAID: Initialize all submodules (this creates the directory structure)
           git submodule sync --recursive
           git submodule update --init --recursive --force
-          
+
           # AvesAID: Verify we're using the Avestec mavlink fork with SKYRON.xml
           cd src/modules/mavlink/mavlink
           echo "Current mavlink submodule info:"
           git remote -v
           git log --oneline -5
-          
+
           # AvesAID: Check if SKYRON.xml exists with custom MAVLINK_MSG_ID_AVESAID_STATUS and MAV_CMD_MAGNET
           if [ -f message_definitions/v1.0/SKYRON.xml ]; then
             echo "✅ SKYRON.xml found!"
@@ -91,24 +91,24 @@ jobs:
       - name: Build ${{ matrix.target }}  # AvesAID: Build specific AvesAID hardware target
         run: |
             echo "Building AvesAID target: ${{ matrix.target }}"
-            
+
             # AvesAID: Apply DroneCAN remote ID bypass (same as Bitbucket pipeline)
             echo "Applying DroneCAN remote ID bypass for hardware builds..."
-            
+
             # AvesAID: Comment out remoteid includes in CMakeLists.txt
             sed -i 's/remoteid\.cpp/#remoteid.cpp # AvesAID: Disabled for hardware build/' src/drivers/uavcan/CMakeLists.txt || true
             sed -i 's/remoteid\.hpp/#remoteid.hpp # AvesAID: Disabled for hardware build/' src/drivers/uavcan/CMakeLists.txt || true
-            
+
             # AvesAID: Comment out remoteid include in uavcan_main.hpp
             sed -i 's/#include "remoteid\.hpp"/\/\/#include "remoteid.hpp" \/\/ AvesAID: Disabled for hardware build/' src/drivers/uavcan/uavcan_main.hpp || true
-            
+
             # AvesAID: Comment out UavcanRemoteIDController member variable declaration
             sed -i 's/UavcanRemoteIDController _remoteid_controller;/\/\/UavcanRemoteIDController _remoteid_controller; \/\/ AvesAID: Disabled for hardware build/' src/drivers/uavcan/uavcan_main.hpp || true
-            
+
             # AvesAID: Comment out remote ID controller initialization in uavcan_main.cpp
             sed -i 's/_remoteid_controller(_node),/\/\/_remoteid_controller(_node), \/\/ AvesAID: Disabled for hardware build/' src/drivers/uavcan/uavcan_main.cpp || true
             sed -i 's/ret = _remoteid_controller\.init();/\/\/ret = _remoteid_controller.init(); \/\/ AvesAID: Disabled for hardware build/' src/drivers/uavcan/uavcan_main.cpp || true
-            
+
             echo "Remote ID bypass applied, building firmware..."
             make ${{ matrix.target }}
 
