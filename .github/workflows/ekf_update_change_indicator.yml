@@ -1,6 +1,12 @@
 name: EKF Update Change Indicator
 
-on: push
+on:
+  push:
+    branches:
+      - 'main'
+      - 'stable'
+      - 'beta'
+      - 'release/*'  # AvesAID: Limit EKF workflow to main PX4 branches only, exclude avesaid-main
 
 jobs:
   unit_tests:
