@@ -147,8 +147,8 @@ px4_add_module(
 		arming_status.hpp
 		beep.cpp
 		beep.hpp
-		remoteid.cpp
-		remoteid.hpp
+		# remoteid.cpp # AvesAID: Disabled due to missing DSDL definitions
+		# remoteid.hpp # AvesAID: Disabled due to missing DSDL definitions
 		rgbled.cpp
 		rgbled.hpp
 		safety_state.cpp
