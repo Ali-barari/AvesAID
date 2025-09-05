@@ -1,8 +1,8 @@
 name: ClusterFuzzLite batch fuzzing
 on:
-  schedule:
-    - cron: '0 6 * * *'  # UTC 6am every day.
-  workflow_dispatch:  # Allow manual triggering
+  workflow_dispatch:  # Manual triggering only (scheduled runs disabled due to build issues)
+  # schedule:
+  #   - cron: '0 6 * * *'  # UTC 6am every day. (Disabled due to build issues)
 permissions: read-all
 jobs:
   BatchFuzzing:
