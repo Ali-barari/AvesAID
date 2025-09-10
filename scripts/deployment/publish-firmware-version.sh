@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# publish-firmware-version.sh - Publish firmware version via API
+# publish-firmware-version.sh - Publish flight controller version via API
 # Usage: ./scripts/deployment/publish-firmware-version.sh --version <version> [--dry-run]
 # 
-# This script publishes firmware versions to the Remote Update API
+# This script publishes flight controller versions to the Remote Update API
 # Integrates with the deployed API Gateway endpoints
 
 set -euo pipefail
@@ -74,7 +74,7 @@ OPTIONS:
     --help                 Show this help message
 
 DESCRIPTION:
-    Publishes firmware versions to the Remote Update API Gateway endpoints.
+    Publishes flight controller versions to the Remote Update API Gateway endpoints.
     Automatically publishes both v6c and v6x binaries for the specified version.
     
     Features:
@@ -290,7 +290,7 @@ generate_release_notes() {
     fi
     
     # Fallback to simple release notes
-    echo "Firmware update to version $version with bug fixes and performance improvements"
+    echo "Flight controller update to version $version with bug fixes and performance improvements"
 }
 
 # Create API request payload for individual binary
@@ -320,7 +320,7 @@ create_binary_payload() {
     # Generate release notes
     local release_notes
     if ! release_notes=$(generate_release_notes "$version"); then
-        release_notes="Firmware update to version $version"
+        release_notes="Flight controller update to version $version"
     fi
     
     # Escape release notes for JSON
@@ -487,7 +487,7 @@ parse_api_response() {
     
     # Try to parse JSON response
     if echo "$response" | jq . >/dev/null 2>&1; then
-        log_success "Firmware version published successfully"
+        log_success "Flight controller version published successfully"
         
         # Display key information from response
         local published_version
@@ -516,7 +516,7 @@ parse_api_response() {
 
 # Main function
 main() {
-    log_info "Starting firmware version publishing process..."
+    log_info "Starting flight controller version publishing process..."
     
     if [[ "$DRY_RUN" == true ]]; then
         log_info "🧪 DRY-RUN MODE: No actual API requests will be made"
@@ -613,7 +613,7 @@ main() {
     
     # Check overall success
     if [[ $success_count -eq $total_binaries ]]; then
-        log_success "All firmware binaries published successfully ($success_count/$total_binaries)"
+        log_success "All flight controller binaries published successfully ($success_count/$total_binaries)"
     elif [[ $success_count -gt 0 ]]; then
         log_warn "Partial success: $success_count/$total_binaries binaries published"
         exit 1
