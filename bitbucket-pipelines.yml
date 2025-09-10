@@ -65,7 +65,7 @@ definitions:
     
     - step: &deploy-flight-controller
         name: Deploy Flight Controller to AWS
-        deployment: development
+        deployment: test
         condition:
           changesets:
             includePaths:
