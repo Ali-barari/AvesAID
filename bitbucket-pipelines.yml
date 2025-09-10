@@ -66,13 +66,6 @@ definitions:
     - step: &deploy-flight-controller
         name: Deploy Flight Controller to AWS
         deployment: test
-        condition:
-          changesets:
-            includePaths:
-              - "src/**"
-              - "boards/**"
-              - "cmake/**"
-              - "platforms/**"
         script:
           - echo "🔧 Installing required tools for deployment..."
           - export DEBIAN_FRONTEND=noninteractive
