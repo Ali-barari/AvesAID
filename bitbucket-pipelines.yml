@@ -79,28 +79,29 @@ definitions:
           - apt-get update && apt-get install -y awscli jq curl wget
           - echo "📋 Setting up deployment scripts..."
           - chmod +x scripts/deployment/*.sh
-          - echo "🔑 Setting up environment variables..."
-          - export AWS_ACCESS_KEY_ID="$MANAGEMENT_AWS_ACCESS_KEY_ID"
-          - export AWS_SECRET_ACCESS_KEY="$MANAGEMENT_AWS_SECRET_ACCESS_KEY"
-          - export AWS_DEFAULT_REGION="$AWS_REGION"
-          - export AWS_ACCOUNT_ID="$AWS_ACCOUNT_ID"
-          - export AWS_REGION="$AWS_REGION"
-          - export CROSS_ACCOUNT_ROLE_ARN="$CROSS_ACCOUNT_ROLE_ARN"
-          - export CROSS_ACCOUNT_EXTERNAL_ID="$CROSS_ACCOUNT_EXTERNAL_ID"
-          - export CROSS_ACCOUNT_SESSION_NAME="AvestecFlightControllerDeployment"
-          - export UPDATE_API_URL="$UPDATE_API_URL"
-          - export UPDATE_API_KEY="$UPDATE_API_KEY"
-          - echo "🏷️ Generating version metadata..."
-          - ./scripts/deployment/generate-version-metadata.sh --output-json > version_info.json
-          - VERSION=$(jq -r '.version' version_info.json)
-          - echo "🚀 Deploying flight controller version: $VERSION"
-          - echo "📤 Uploading v6c binary to S3..."
-          - ./scripts/deployment/upload-flight-controller-binary.sh --file build/px4_fmu-v6c_default/px4_fmu-v6c_default.px4 --type v6c --version $VERSION --verbose
-          - echo "📤 Uploading v6x binary to S3..."
-          - ./scripts/deployment/upload-flight-controller-binary.sh --file build/px4_fmu-v6x_default/px4_fmu-v6x_default.px4 --type v6x --version $VERSION --verbose
-          - echo "🚀 Publishing flight controller version via API..."
-          - ./scripts/deployment/publish-firmware-version.sh --version $VERSION --verbose
-          - echo "✅ Successfully deployed flight controller version $VERSION"
+          - echo "🔑 Setting up environment variables and deploying..."
+          - |
+            export AWS_ACCESS_KEY_ID="$MANAGEMENT_AWS_ACCESS_KEY_ID"
+            export AWS_SECRET_ACCESS_KEY="$MANAGEMENT_AWS_SECRET_ACCESS_KEY"
+            export AWS_DEFAULT_REGION="$AWS_REGION"
+            export AWS_ACCOUNT_ID="$AWS_ACCOUNT_ID"
+            export AWS_REGION="$AWS_REGION"
+            export CROSS_ACCOUNT_ROLE_ARN="$CROSS_ACCOUNT_ROLE_ARN"
+            export CROSS_ACCOUNT_EXTERNAL_ID="$CROSS_ACCOUNT_EXTERNAL_ID"
+            export CROSS_ACCOUNT_SESSION_NAME="AvestecFlightControllerDeployment"
+            export UPDATE_API_URL="$UPDATE_API_URL"
+            export UPDATE_API_KEY="$UPDATE_API_KEY"
+            echo "🏷️ Generating version metadata..."
+            ./scripts/deployment/generate-version-metadata.sh --output-json > version_info.json
+            VERSION=$(jq -r '.version' version_info.json)
+            echo "🚀 Deploying flight controller version: $VERSION"
+            echo "📤 Uploading v6c binary to S3..."
+            ./scripts/deployment/upload-flight-controller-binary.sh --file build/px4_fmu-v6c_default/px4_fmu-v6c_default.px4 --type v6c --version $VERSION --verbose
+            echo "📤 Uploading v6x binary to S3..."
+            ./scripts/deployment/upload-flight-controller-binary.sh --file build/px4_fmu-v6x_default/px4_fmu-v6x_default.px4 --type v6x --version $VERSION --verbose
+            echo "🚀 Publishing flight controller version via API..."
+            ./scripts/deployment/publish-firmware-version.sh --version $VERSION --verbose
+            echo "✅ Successfully deployed flight controller version $VERSION"
         after-script:
           - echo "🧹 Flight controller deployment completed"
 
