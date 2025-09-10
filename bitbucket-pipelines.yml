@@ -91,8 +91,8 @@ definitions:
           - export UPDATE_API_URL="$UPDATE_API_URL"
           - export UPDATE_API_KEY="$UPDATE_API_KEY"
           - echo "🏷️ Generating version metadata..."
-          - VERSION_INFO=$(./scripts/deployment/generate-version-metadata.sh --output-json)
-          - VERSION=$(echo $VERSION_INFO | jq -r '.version')
+          - ./scripts/deployment/generate-version-metadata.sh --output-json > version_info.json
+          - VERSION=$(jq -r '.version' version_info.json)
           - echo "🚀 Deploying flight controller version: $VERSION"
           - echo "📤 Uploading v6c binary to S3..."
           - ./scripts/deployment/upload-flight-controller-binary.sh --file build/px4_fmu-v6c_default/px4_fmu-v6c_default.px4 --type v6c --version $VERSION --verbose
