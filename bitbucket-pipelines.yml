@@ -88,15 +88,13 @@ definitions:
           - export AWS_ACCESS_KEY_ID="$MANAGEMENT_AWS_ACCESS_KEY_ID"
           - export AWS_SECRET_ACCESS_KEY="$MANAGEMENT_AWS_SECRET_ACCESS_KEY"
           - export AWS_DEFAULT_REGION="$AWS_REGION"
-          - |
-            export AWS_ACCOUNT_ID="$AWS_ACCOUNT_ID"
-            export AWS_REGION="$AWS_REGION"
-            export CROSS_ACCOUNT_ROLE_ARN="$CROSS_ACCOUNT_ROLE_ARN"
-            export CROSS_ACCOUNT_EXTERNAL_ID="$CROSS_ACCOUNT_EXTERNAL_ID"
-            export CROSS_ACCOUNT_SESSION_NAME="$CROSS_ACCOUNT_SESSION_NAME"
-            export UPDATE_API_URL="$UPDATE_API_URL"
-            export UPDATE_API_KEY="$UPDATE_API_KEY"
-          
+          - export AWS_ACCOUNT_ID="$AWS_ACCOUNT_ID"
+          - export AWS_REGION="$AWS_REGION"
+          - export CROSS_ACCOUNT_ROLE_ARN="$CROSS_ACCOUNT_ROLE_ARN"
+          - export CROSS_ACCOUNT_EXTERNAL_ID="$CROSS_ACCOUNT_EXTERNAL_ID"
+          - export CROSS_ACCOUNT_SESSION_NAME="AvestecFlightControllerDeployment"
+          - export UPDATE_API_URL="$UPDATE_API_URL"
+          - export UPDATE_API_KEY="$UPDATE_API_KEY"
           # Generate version metadata from git state
           - echo "🏷️ Generating version metadata..."
           - VERSION_INFO=$(./scripts/deployment/generate-version-metadata.sh --output-json)
