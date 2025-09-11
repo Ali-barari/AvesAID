@@ -301,8 +301,9 @@ create_binary_payload() {
     
     log_info "Creating API request payload for $controller_type..."
     
-    # Remove 'v' prefix for API compatibility - now supports full PX4-AvesAID format
-    local api_version="${version#v}"
+    # Remove 'v' prefix and git metadata for API compatibility - extract PX4-AvesAID format
+    local api_version="${version#v}"        # Remove 'v' prefix: v1.15.4-1.2.3+10.c4ea4e2 -> 1.15.4-1.2.3+10.c4ea4e2
+    api_version="${api_version%+*}"         # Remove git metadata: 1.15.4-1.2.3+10.c4ea4e2 -> 1.15.4-1.2.3
     
     # Extract binary information
     local s3_key sha256 size exists
