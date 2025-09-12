@@ -8,13 +8,13 @@ options:
 definitions:
   steps:
     - step: &build-step
-        name: Build PX4 for v6C and v6X
+        name: Build AvesAID for v6C and v6X
         services:
           - docker
         caches:
           - docker
         script:
-          - echo "🔄 Building PX4 firmware for Pixhawk 6C and 6X..."
+          - echo "🔄 Building AvesAID firmware for Pixhawk 6C and 6X..."
           # Ensure all submodules are properly initialized and updated
           - git submodule update --init --recursive --force
           # Ensure ARM toolchain is in PATH
@@ -63,8 +63,8 @@ definitions:
           - build/px4_fmu-v6x_default/px4_fmu-v6x_default.px4
           - scripts/deployment/*  # Include deployment scripts
 
-    - step: &deploy-flight-controller
-        name: Deploy Flight Controller to AWS
+    - step: &deploy-avesaid
+        name: Deploy AvesAID to AWS
         deployment: test
         script:
           - echo "🔧 Installing required tools for deployment..."
@@ -87,16 +87,16 @@ definitions:
             echo "🏷️ Generating version metadata..."
             ./scripts/deployment/generate-version-metadata.sh --output-json > version_info.json
             VERSION=$(jq -r '.version' version_info.json)
-            echo "🚀 Deploying flight controller version: $VERSION"
+            echo "🚀 Deploying AvesAID version: $VERSION"
             echo "📤 Uploading v6c binary to S3..."
             ./scripts/deployment/upload-flight-controller-binary.sh --file build/px4_fmu-v6c_default/px4_fmu-v6c_default.px4 --type v6c --version $VERSION --verbose
             echo "📤 Uploading v6x binary to S3..."
             ./scripts/deployment/upload-flight-controller-binary.sh --file build/px4_fmu-v6x_default/px4_fmu-v6x_default.px4 --type v6x --version $VERSION --verbose
-            echo "🚀 Publishing flight controller version via API..."
+            echo "🚀 Publishing AvesAID version via API..."
             ./scripts/deployment/publish-firmware-version.sh --version $VERSION --verbose || echo "⚠️ API publishing completed with some versions already existing (expected behavior)"
-            echo "✅ Successfully deployed flight controller version $VERSION"
+            echo "✅ Successfully deployed AvesAID version $VERSION"
         after-script:
-          - echo "🧹 Flight controller deployment completed"
+          - echo "🧹 AvesAID deployment completed"
 
 pipelines:
   default:
@@ -106,7 +106,7 @@ pipelines:
     avesaid-main:
       - step: *build-step
       - step:
-          <<: *deploy-flight-controller
+          <<: *deploy-avesaid
           trigger: manual  # Require manual approval for main branch
 
     develop:
