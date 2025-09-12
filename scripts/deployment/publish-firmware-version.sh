@@ -212,8 +212,27 @@ get_binary_info() {
     local controller_type="$2"
     local aws_script="$SCRIPT_DIR/aws-cross-account.sh"
     
-    # Generate S3 key
-    local s3_key="${S3_KEY_PREFIX}/${version}/px4_fmu-${controller_type}_default.px4"
+    # Extract version using metadata script for S3 path
+    local metadata_script="$SCRIPT_DIR/generate-version-metadata.sh"
+    if [[ ! -f "$metadata_script" ]]; then
+        log_error "Version metadata script not found: $metadata_script" >&2
+        return 1
+    fi
+    
+    # Extract shortVersion from metadata script
+    local short_version
+    if ! short_version=$("$metadata_script" --output-json 2>/dev/null | jq -r '.shortVersion' 2>/dev/null); then
+        log_error "Failed to extract version metadata for S3 path" >&2
+        return 1
+    fi
+    
+    if [[ -z "$short_version" ]] || [[ "$short_version" == "null" ]]; then
+        log_error "Could not extract shortVersion from metadata script for S3 path" >&2
+        return 1
+    fi
+    
+    # Generate S3 key using extracted version
+    local s3_key="${S3_KEY_PREFIX}/v${short_version}/px4_fmu-${controller_type}_default.px4"
     
     log_info "Retrieving binary info for $controller_type from S3: $s3_key" >&2
     
@@ -301,9 +320,28 @@ create_binary_payload() {
     
     log_info "Creating API request payload for $controller_type..."
     
-    # Remove 'v' prefix and git metadata for API compatibility - extract PX4-AvesAID format
-    local api_version="${version#v}"        # Remove 'v' prefix: v1.15.4-1.2.3+10.c4ea4e2 -> 1.15.4-1.2.3+10.c4ea4e2
-    api_version="${api_version%+*}"         # Remove git metadata: 1.15.4-1.2.3+10.c4ea4e2 -> 1.15.4-1.2.3
+    # Extract version using metadata script
+    log_progress "Extracting version metadata for API payload..."
+    
+    local metadata_script="$SCRIPT_DIR/generate-version-metadata.sh"
+    if [[ ! -f "$metadata_script" ]]; then
+        log_error "Version metadata script not found: $metadata_script"
+        return 1
+    fi
+    
+    # Extract shortVersion from metadata script
+    local api_version
+    if ! api_version=$("$metadata_script" --output-json 2>/dev/null | jq -r '.shortVersion' 2>/dev/null); then
+        log_error "Failed to extract version metadata for API"
+        return 1
+    fi
+    
+    if [[ -z "$api_version" ]] || [[ "$api_version" == "null" ]]; then
+        log_error "Could not extract shortVersion from metadata script for API"
+        return 1
+    fi
+    
+    log_info "Using extracted API version: $api_version"
     
     # Extract binary information
     local s3_key sha256 size exists

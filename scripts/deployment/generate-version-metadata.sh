@@ -65,7 +65,10 @@ DESCRIPTION:
     2. Latest tag + commits ahead (e.g., v1.15.4+5.abc123)
     3. Branch name + short commit (e.g., develop-abc123)
 
-    Expected tag format: v{digit}.{digit}.{digit} (e.g., v1.15.4, v2.0.1)
+    Expected tag formats: 
+    - Simple: v{digit}.{digit}.{digit} (e.g., v1.15.4, v2.0.1)
+    - Compound: v{PX4-version}-{AvesAID-version} (e.g., v1.15.4-2.5.0)
+    Note: Compound formats extract only the AvesAID version part (2.5.0)
 
     Supports environment variable overrides:
     - CUSTOM_RELEASE_NOTES: Override generated release notes
@@ -141,21 +144,29 @@ extract_version_info() {
     log_info "Current commit: $git_commit"
     log_info "Current branch: $git_branch"
     
-    # Check for tag on current commit
+    # Check for tag on current commit - supports both simple (v1.15.4) and compound (v1.15.4-2.5.0) formats
     local current_tag
-    current_tag=$(git tag --points-at HEAD 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || true)
+    current_tag=$(git tag --points-at HEAD 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+\.[0-9]+\.[0-9]+)?$' | head -n1 || true)
     
     if [[ -n "$current_tag" ]]; then
-        # Tagged release - use tag as version
+        # Tagged release - extract AvesAID version part for compound formats
         log_info "Found tag on current commit: $current_tag"
         is_tagged_release=true
         commits_ahead=0
-        version="$current_tag"
-        short_version="${current_tag#v}"  # Remove 'v' prefix for short version
+        
+        # Extract AvesAID version part (after '-' if compound format)
+        local avesaid_version="$current_tag"
+        if [[ "$current_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            avesaid_version="v${BASH_REMATCH[1]}"
+            log_info "Extracted AvesAID version from compound tag: $avesaid_version"
+        fi
+        
+        version="$avesaid_version"
+        short_version="${avesaid_version#v}"  # Remove 'v' prefix for short version
     else
-        # No tag on current commit - check for latest tag
+        # No tag on current commit - check for latest tag - supports both simple and compound formats
         local latest_tag
-        latest_tag=$(git describe --tags --abbrev=0 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || true)
+        latest_tag=$(git describe --tags --abbrev=0 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+\.[0-9]+\.[0-9]+)?$' | head -n1 || true)
         
         if [[ -n "$latest_tag" ]]; then
             # Found latest tag - calculate commits ahead
@@ -164,11 +175,25 @@ extract_version_info() {
             
             if [[ $commits_ahead -gt 0 ]]; then
                 local short_commit=$(git rev-parse --short HEAD)
-                version="$latest_tag+$commits_ahead.$short_commit"
-                short_version="${latest_tag#v}-dev"  # Remove 'v' prefix and add -dev suffix
+                
+                # Extract AvesAID version part for compound formats
+                local avesaid_version="$latest_tag"
+                if [[ "$latest_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+                    avesaid_version="v${BASH_REMATCH[1]}"
+                fi
+                
+                version="$avesaid_version+$commits_ahead.$short_commit"
+                short_version="${avesaid_version#v}-dev"  # Remove 'v' prefix and add -dev suffix
             else
-                version="$latest_tag"
-                short_version="${latest_tag#v}"
+                # Extract AvesAID version part for compound formats
+                local avesaid_version="$latest_tag"
+                if [[ "$latest_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+                    avesaid_version="v${BASH_REMATCH[1]}"
+                    log_info "Extracted AvesAID version from compound tag: $avesaid_version"
+                fi
+                
+                version="$avesaid_version"
+                short_version="${avesaid_version#v}"
                 is_tagged_release=true
             fi
         else
@@ -184,11 +209,18 @@ extract_version_info() {
     if [[ -n "${OVERRIDE_VERSION:-}" ]]; then
         log_info "Overriding version with environment variable: $OVERRIDE_VERSION"
         version="$OVERRIDE_VERSION"
-        # Parse overridden version - ensure it follows v{digit}.{digit}.{digit} format
-        if [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            short_version="${version#v}"
+        # Parse overridden version - supports both simple and compound formats
+        if [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+\.[0-9]+\.[0-9]+)?$ ]]; then
+            # Extract AvesAID version part if compound format
+            local avesaid_version="$version"
+            if [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+                avesaid_version="v${BASH_REMATCH[1]}"
+                log_info "Override version: extracted AvesAID part $avesaid_version from compound format"
+            fi
+            version="$avesaid_version"
+            short_version="${avesaid_version#v}"
         else
-            log_warn "Override version doesn't match expected format v{digit}.{digit}.{digit}"
+            log_warn "Override version doesn't match expected format v{digit}.{digit}.{digit}[-{digit}.{digit}.{digit}]"
             short_version="$version"
         fi
     fi
