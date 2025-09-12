@@ -218,9 +218,31 @@ format_bytes() {
     fi
 }
 
-# Generate S3 key path
+# Generate S3 key path using metadata script
 generate_s3_key() {
-    local s3_key="${S3_KEY_PREFIX}/${VERSION}/px4_fmu-${CONTROLLER_TYPE}_default.px4"
+    log_progress "Extracting version metadata..."
+    
+    # Get version metadata from the metadata script
+    local metadata_script="$SCRIPT_DIR/generate-version-metadata.sh"
+    if [[ ! -f "$metadata_script" ]]; then
+        log_error "Version metadata script not found: $metadata_script"
+        exit 1
+    fi
+    
+    # Extract shortVersion from metadata script
+    local short_version
+    if ! short_version=$("$metadata_script" --output-json 2>/dev/null | jq -r '.shortVersion' 2>/dev/null); then
+        log_error "Failed to extract version metadata"
+        exit 1
+    fi
+    
+    if [[ -z "$short_version" ]] || [[ "$short_version" == "null" ]]; then
+        log_error "Could not extract shortVersion from metadata script"
+        exit 1
+    fi
+    
+    log_info "Using extracted version: v$short_version"
+    local s3_key="${S3_KEY_PREFIX}/v${short_version}/px4_fmu-${CONTROLLER_TYPE}_default.px4"
     echo "$s3_key"
 }
 

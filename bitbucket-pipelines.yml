@@ -66,14 +66,6 @@ definitions:
     - step: &deploy-flight-controller
         name: Deploy Flight Controller to AWS
         deployment: test
-        # condition:
-        #   changesets:
-        #     includePaths:
-        #       - "src/**"
-        #       - "boards/**"
-        #       - "cmake/**"
-        #       - "platforms/**"
-        #       - "bitbucket-pipelines.yml"
         script:
           - echo "🔧 Installing required tools for deployment..."
           - export DEBIAN_FRONTEND=noninteractive
@@ -119,33 +111,3 @@ pipelines:
 
     develop:
       - step: *build-step
-      - step:
-          <<: *deploy-flight-controller
-          trigger: automatic  # Auto-deploy on develop branch
-
-    feature/firmware-deployment-pipeline-fix:
-      - step: *build-step
-      - step:
-          name: Test Deployment (Dry-Run)
-          script:
-            # Install required tools for testing
-            - echo "🧪 Testing deployment scripts with dry-run..."
-            - export DEBIAN_FRONTEND=noninteractive
-            - apt-get update && apt-get install -y awscli jq curl wget
-
-            # Make deployment scripts executable
-            - chmod +x scripts/deployment/*.sh
-
-            # Test version generation
-            - echo "🏷️ Testing version metadata generation..."
-            - ./scripts/deployment/generate-version-metadata.sh --dry-run --verbose
-
-            # Test S3 upload (dry-run)
-            - echo "📤 Testing S3 upload (dry-run)..."
-            - ./scripts/deployment/upload-flight-controller-binary.sh --file build/px4_fmu-v6c_default/px4_fmu-v6c_default.px4 --type v6c --version test-version --dry-run
-
-            # Test API publishing (dry-run)
-            - echo "🚀 Testing API publishing (dry-run)..."
-            - ./scripts/deployment/publish-firmware-version.sh --version test-version --dry-run
-
-            - echo "✅ Dry-run testing completed successfully"
