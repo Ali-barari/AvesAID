@@ -103,7 +103,7 @@ pipelines:
     - step: *build-step
 
   branches:
-    avesaid-main:
+    main:
       - step: *build-step
       - step:
           <<: *deploy-avesaid
