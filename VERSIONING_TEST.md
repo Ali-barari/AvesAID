@@ -5,7 +5,10 @@ This file is used to test the automatic AvesAID versioning system.
 ## Expected Behavior
 
 When commits are made to the `develop` branch, the post-commit hook should automatically:
-
+```
+git config --global push.followTags true
+git config --get push.followTags
+```
 1. Find the current upstream version tag that the code is based on (e.g., `v1.15.4`)
 2. Find the latest AvesAID version for that upstream base (e.g., `v1.15.4-1.2.3`)
 3. Increment the AvesAID version based on commit message:
