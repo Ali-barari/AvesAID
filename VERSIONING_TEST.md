@@ -24,3 +24,9 @@ This commit should trigger automatic versioning and create v1.15.4-1.2.4
 ## Update
 
 Updated to test the improved version detection logic.
+# AvesAID Auto-Versioning Update
+
+The post-commit hook has been updated to auto-version on all branches except 'main'.
+This ensures main branch stays stable for releases while all development branches get automatic versioning.
+
+Updated: Tue 16 Sep 2025 04:05:25 PM PDT
