@@ -15,11 +15,11 @@ fi
 # AvesAID: Start custom MAVLink instances for telemetry to multiple ground stations
 echo "Starting AvesAID MAVLink telemetry instances..."
 
-# Primary ground station (with forwarding enabled)
-mavlink start -x -u 14570 -o 14570 -t 192.168.144.133 -r 11520 -f
+# Primary ground station (independent instance)
+mavlink start -u 14570 -o 14570 -t 192.168.144.133 -r 11520 -f
 
-# Secondary ground station (with forwarding enabled)
-mavlink start -x -u 14580 -o 14580 -t 192.168.144.134 -r 11520 -f
+# Secondary ground station (independent instance) 
+mavlink start -u 14580 -o 14580 -t 192.168.144.134 -r 11520 -f
 
-# Tertiary ground station (with forwarding enabled)
-mavlink start -x -u 14590 -o 14590 -t 192.168.144.191 -r 11520 -f
+# Tertiary ground station (independent instance)
+mavlink start -u 14590 -o 14590 -t 192.168.144.191 -r 11520 -f
