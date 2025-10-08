@@ -9,6 +9,10 @@ param set-default SENS_EN_INA238 0
 param set-default SENS_EN_INA228 0
 param set-default SENS_EN_INA226 0
 
+# AvesAID: Disable MAV_0 instance by default (TELEM1 port)
+# This prevents automatic MAVLink on TELEM1, allowing custom configuration
+param set-default MAV_0_CONFIG 0
+
 if ver hwbasecmp 009 010 011
 then
 	# Skynode: use the "custom participant", IP=10.41.10.1 config for uxrce_dds_client
