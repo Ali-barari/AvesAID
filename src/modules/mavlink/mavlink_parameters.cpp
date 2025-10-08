@@ -148,17 +148,17 @@ MavlinkParametersManager::handle_message(const mavlink_message_t *msg)
 								char type_char1 = (platform_type >> 8) & 0xFF;
 								char type_char2 = platform_type & 0xFF;
 								char suffix_char = (char)platform_suffix;
-								
-								PX4_WARN("Platform serial already set to %c%c%05d%c. Cannot modify.", 
+
+								PX4_WARN("Platform serial already set to %c%c%05d%c. Cannot modify.",
 									type_char1, type_char2, (int)platform_sn, suffix_char);
 							} else {
 								PX4_WARN("Platform serial parameters already set. Cannot modify.");
 							}
-							
+
 							send_param(param); // Send current value back
 							break;
 						}
-						
+
 						PX4_INFO("Setting platform parameter %s", name);
 					}
 					// AvesAID: Platform serial number write-once protection - END
