@@ -130,6 +130,39 @@ MavlinkParametersManager::handle_message(const mavlink_message_t *msg)
 					PX4_ERR("param types mismatch param: %s", name);
 
 				} else {
+					// AvesAID: Platform serial number write-once protection - START
+					// AvesAID: Simple write-once protection for platform parameters
+					// AvesAID: Format: XX#####Y (2 letters + 5 digits + 1 letter, e.g., CU54543B)
+					// AvesAID: Three-parameter storage: SYS_PLAT_TYPE (XX) + SYS_PLAT_SN (#####) + SYS_PLAT_SUFFIX (Y)
+					if (strcmp(name, "SYS_PLAT_TYPE") == 0 || strcmp(name, "SYS_PLAT_SN") == 0 || strcmp(name, "SYS_PLAT_SUFFIX") == 0) {
+						// AvesAID: Check if parameters are already set (write-once protection)
+						int32_t platform_type, platform_sn, platform_suffix;
+						param_get(param_find("SYS_PLAT_TYPE"), &platform_type);
+						param_get(param_find("SYS_PLAT_SN"), &platform_sn);
+						param_get(param_find("SYS_PLAT_SUFFIX"), &platform_suffix);
+
+						// AvesAID: If ALL parameters are already set to non-zero values, block modification
+						if (platform_type != 0 && platform_sn != 0 && platform_suffix != 0) {
+							// AvesAID: Decode and display current serial number if valid
+							if (platform_type > 256 && platform_sn >= 0 && platform_suffix > 0) {
+								char type_char1 = (platform_type >> 8) & 0xFF;
+								char type_char2 = platform_type & 0xFF;
+								char suffix_char = (char)platform_suffix;
+								
+								PX4_WARN("Platform serial already set to %c%c%05d%c. Cannot modify.", 
+									type_char1, type_char2, (int)platform_sn, suffix_char);
+							} else {
+								PX4_WARN("Platform serial parameters already set. Cannot modify.");
+							}
+							
+							send_param(param); // Send current value back
+							break;
+						}
+						
+						PX4_INFO("Setting platform parameter %s", name);
+					}
+					// AvesAID: Platform serial number write-once protection - END
+
 					// According to the mavlink spec we should always acknowledge a write operation.
 					param_set(param, &(set.param_value));
 					send_param(param);
@@ -316,6 +349,10 @@ MavlinkParametersManager::send()
 
 		// parameter only used in startup script but should show on ground station
 		param_find("SYS_PARAM_VER");
+		// AvesAID: Platform serial number parameters for MAVLink discovery
+		param_find("SYS_PLAT_TYPE");   // AvesAID: Platform type (2 letters, e.g., SN, CU, SA)
+		param_find("SYS_PLAT_SN");     // AvesAID: Serial number (5 digits, e.g., 55555)
+		param_find("SYS_PLAT_SUFFIX"); // AvesAID: Suffix letter (1 letter, e.g., B)
 
 		_first_send = true;
 	}

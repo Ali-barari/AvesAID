@@ -290,3 +290,53 @@ PARAM_DEFINE_INT32(SYS_BL_UPDATE, 0);
  * @group System
  */
 PARAM_DEFINE_INT32(SYS_FAILURE_EN, 0);
+
+// AvesAID: Platform serial number parameters - START
+// AvesAID: Three-parameter system for storing platform serial numbers in format XX#####Y
+// AvesAID: e.g., SN55555B, CU54543B, SA12345X with write-once protection
+
+/**
+ * Platform type identifier
+ *
+ * Stores the platform type as 2-letter code (e.g., CU, SN, AB, XY).
+ * This represents the first two letters of the full serial number.
+ * Encoded as 16-bit value: (first_letter << 8) | second_letter
+ * Can only be set once and cannot be modified afterward.
+ *
+ * @group System
+ * @min 0
+ * @max 65535
+ * @reboot_required true
+ */
+PARAM_DEFINE_INT32(SYS_PLAT_TYPE, 0);
+
+/**
+ * Platform serial number
+ *
+ * Stores the 5-digit numeric part of the platform serial number.
+ * Format: 5 digits (00000-99999) from XX#####Y pattern.
+ * Can only be set once and cannot be modified afterward.
+ *
+ * @group System
+ * @min 0
+ * @max 99999
+ * @reboot_required true
+ */
+PARAM_DEFINE_INT32(SYS_PLAT_SN, 0);
+
+/**
+ * Platform serial suffix
+ *
+ * Stores the suffix letter of the platform serial number.
+ * This represents the last letter of the full serial number (A-Z).
+ * Encoded as ASCII value (65-90 for A-Z, 0 = not set).
+ * Can only be set once and cannot be modified afterward.
+ *
+ * @group System
+ * @min 0
+ * @max 90
+ * @reboot_required true
+ */
+PARAM_DEFINE_INT32(SYS_PLAT_SUFFIX, 0);
+
+// AvesAID: Platform serial number parameters - END
