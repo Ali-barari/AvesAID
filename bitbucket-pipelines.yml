@@ -67,7 +67,7 @@ definitions:
         name: Deploy AvesAID to AWS
         deployment: test
         script:
-          - echo "🔧 Installing required tools for deployment..."
+          - echo "Installing required tools for deployment..."
           - export DEBIAN_FRONTEND=noninteractive
           - apt-get update && apt-get install -y awscli jq curl wget
           - echo "Setting up deployment scripts..."
@@ -85,7 +85,7 @@ definitions:
             export UPDATE_API_URL="$UPDATE_API_URL"
             export UPDATE_API_KEY="$UPDATE_API_KEY"
             echo "Generating version metadata..."
-            ./scripts/deployment/generate-version-metadata.sh --output-json > version_info.json
+            ./scripts/deployment/create-release.sh --verbose > version_info.json
             VERSION=$(jq -r '.version' version_info.json)
             echo "Deploying AvesAID version: $VERSION"
             echo "Uploading v6c binary to S3..."
@@ -97,19 +97,10 @@ definitions:
             echo "Successfully deployed AvesAID version $VERSION"
         after-script:
           - echo "AvesAID deployment completed"
+        trigger: manual
 
 pipelines:
-  default:
-    - step: *build-step
-
   branches:
     main:
-      - step: *build-step
-
-    develop:
-      - step: *build-step
-
-  tags:
-    'v*.*.*':
       - step: *build-step
       - step: *deploy-avesaid
