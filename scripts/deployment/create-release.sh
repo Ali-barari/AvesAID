@@ -26,16 +26,18 @@ if [[ "$BRANCH" != "main" ]]; then
 fi
 log "Running on main branch"
 
-# Find highest semantic version tag on main
-HIGHEST_VERSION=$(git tag --merged main --list "v*.*.*" 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)
+# Find AvesAID tags: v1.15.4-1.5.1 format
+FULL_TAG=$(git tag --merged main --list "v*.*.*-*.*.*" 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+-[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)
 
-if [[ -z "$HIGHEST_VERSION" ]]; then
-    echo "[ERROR] No semantic version tags found on main branch" >&2
-    echo "[ERROR] Expected format: v1.2.3" >&2
+if [[ -z "$FULL_TAG" ]]; then
+    echo "[ERROR] No AvesAID version tags found on main branch" >&2
+    echo "[ERROR] Expected format: v1.15.4-1.5.1" >&2
     exit 1
 fi
 
-log "Found version tag: $HIGHEST_VERSION"
+# Extract semantic version: v1.15.4-1.5.1 → v1.5.1
+HIGHEST_VERSION=$(echo "$FULL_TAG" | sed 's/^v[^-]*-/v/')
+log "Found tag: $FULL_TAG, extracted version: $HIGHEST_VERSION"
 
 # Generate release notes from recent commits
 RELEASE_NOTES=$(git log --format="• %s" HEAD~10..HEAD 2>/dev/null | grep -v "^• Merged in" | head -20 | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *• *//' || echo "Updates and improvements")
