@@ -1,12 +1,12 @@
 # Deployment Scripts for AvesAID Remote Update System
 
-Automated firmware deployment pipeline for PX4 flight controller binaries with S3 storage and API publishing.
+Automated AvesAID deployment pipeline for PX4 flight controller binaries with S3 storage and API publishing.
 
 ## Core Scripts
 
 - **`generate-version-metadata.sh`**: Extract version info from git tags (supports `v1.15.4-1.2.3` format)
-- **`upload-flight-controller-binary.sh`**: Upload binaries to S3 with SHA256 validation  
-- **`publish-firmware-version.sh`**: Publish versions via API (supports PX4-AvesAID version format)
+- **`upload-flight-controller-binary.sh`**: Upload binaries to S3 with SHA256 validation
+- **`publish-avesaid-version.sh`**: Publish versions via API (supports PX4-AvesAID version format)
 - **`aws-cross-account.sh`**: Handle cross-account AWS authentication
 
 ## Environment Variables
@@ -41,8 +41,8 @@ MAX_RETRIES=3         # Retry attempts (default: 3)
 ```bash
 # Test full deployment workflow without making changes
 ./scripts/deployment/generate-version-metadata.sh --dry-run
-./scripts/deployment/upload-flight-controller-binary.sh --file test.px4 --type v6c --version v1.15.4-1.2.3 --dry-run  
-./scripts/deployment/publish-firmware-version.sh --version v1.15.4-1.2.3 --dry-run
+./scripts/deployment/upload-flight-controller-binary.sh --file test.px4 --type v6c --version v1.15.4-1.2.3 --dry-run
+./scripts/deployment/publish-avesaid-version.sh --version v1.15.4-1.2.3 --dry-run
 ```
 
 ### Production Deployment
@@ -54,8 +54,8 @@ VERSION=$(./scripts/deployment/generate-version-metadata.sh --output-json | jq -
 ./scripts/deployment/upload-flight-controller-binary.sh --file build/px4_fmu-v6c_default.px4 --type v6c --version $VERSION
 ./scripts/deployment/upload-flight-controller-binary.sh --file build/px4_fmu-v6x_default.px4 --type v6x --version $VERSION
 
-# 3. Publish via API  
-./scripts/deployment/publish-firmware-version.sh --version $VERSION
+# 3. Publish via API
+./scripts/deployment/publish-avesaid-version.sh --version $VERSION
 ```
 
 ## Key Features

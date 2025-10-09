@@ -3,7 +3,7 @@
 # upload-flight-controller-binary.sh - Upload flight controller binaries to S3 with checksums
 # Usage: ./scripts/deployment/upload-flight-controller-binary.sh --file <path> --type <v6c|v6x> --version <version> [--dry-run]
 #
-# This script uploads PX4 firmware binaries to S3 with proper versioning, checksums, and metadata
+# This script uploads AvesAID binaries to S3 with proper versioning, checksums, and metadata
 # Supports v6c and v6x flight controller types
 
 set -euo pipefail
@@ -71,7 +71,7 @@ USAGE:
     $(basename "$0") --file <path> --type <v6c|v6x> --version <version> [OPTIONS]
 
 REQUIRED PARAMETERS:
-    --file <path>       Path to the PX4 firmware binary file
+    --file <path>       Path to the AvesAID binary file
     --type <v6c|v6x>    Flight controller type (v6c or v6x)
     --version <version> Version string (e.g., v1.15.4-1.0.0)
 
@@ -82,7 +82,7 @@ OPTIONS:
     --help              Show this help message
 
 DESCRIPTION:
-    Uploads PX4 firmware binaries to S3 with comprehensive metadata and integrity checking.
+    Uploads AvesAID binaries to S3 with comprehensive metadata and integrity checking.
 
     Features:
     - SHA256 checksum generation and validation
