@@ -93,7 +93,7 @@ definitions:
             echo "Uploading v6x binary to S3..."
             ./scripts/deployment/upload-flight-controller-binary.sh --file build/px4_fmu-v6x_default/px4_fmu-v6x_default.px4 --type v6x --version $VERSION --verbose
             echo "Publishing AvesAID version via API..."
-            ./scripts/deployment/publish-firmware-version.sh --version $VERSION --verbose || echo "API publishing completed with some versions already existing (expected behavior)"
+            ./scripts/deployment/publish-avesaid-version.sh --version $VERSION --verbose || echo "API publishing completed with some versions already existing (expected behavior)"
             echo "Successfully deployed AvesAID version $VERSION"
         after-script:
           - echo "AvesAID deployment completed"
