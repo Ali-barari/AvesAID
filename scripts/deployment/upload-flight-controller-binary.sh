@@ -2,7 +2,7 @@
 
 # upload-flight-controller-binary.sh - Upload flight controller binaries to S3 with checksums
 # Usage: ./scripts/deployment/upload-flight-controller-binary.sh --file <path> --type <v6c|v6x> --version <version> [--dry-run]
-# 
+#
 # This script uploads PX4 firmware binaries to S3 with proper versioning, checksums, and metadata
 # Supports v6c and v6x flight controller types
 
@@ -20,7 +20,7 @@ CONTROLLER_TYPE=""
 VERSION=""
 
 # S3 Configuration
-S3_BUCKET="avestec-dev-update-binaries"
+S3_BUCKET="avestec-prod-update-binaries"
 S3_KEY_PREFIX="flight-controller"
 
 # Color codes for output
@@ -83,7 +83,7 @@ OPTIONS:
 
 DESCRIPTION:
     Uploads PX4 firmware binaries to S3 with comprehensive metadata and integrity checking.
-    
+
     Features:
     - SHA256 checksum generation and validation
     - Progress reporting for large files
@@ -154,49 +154,49 @@ parse_args() {
 # Validate input parameters
 validate_parameters() {
     log_info "Validating input parameters..."
-    
+
     # Check required parameters
     if [[ -z "$FILE_PATH" ]]; then
         log_error "Missing required parameter: --file"
         exit 1
     fi
-    
+
     if [[ -z "$CONTROLLER_TYPE" ]]; then
         log_error "Missing required parameter: --type"
         exit 1
     fi
-    
+
     if [[ -z "$VERSION" ]]; then
         log_error "Missing required parameter: --version"
         exit 1
     fi
-    
+
     # Validate controller type
     if [[ "$CONTROLLER_TYPE" != "v6c" ]] && [[ "$CONTROLLER_TYPE" != "v6x" ]]; then
         log_error "Invalid controller type: $CONTROLLER_TYPE. Must be 'v6c' or 'v6x'"
         exit 1
     fi
-    
+
     # Validate version format
     if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-[0-9]+\.[0-9]+\.[0-9]+ ]] && [[ ! "$VERSION" =~ ^[a-zA-Z0-9.-]+$ ]]; then
         log_warn "Version format may not match expected pattern: $VERSION"
         log_warn "Expected format: v1.15.4-1.0.0 or development version"
     fi
-    
+
     # Validate file exists and is readable
     if [[ ! -f "$FILE_PATH" ]]; then
         log_error "File not found: $FILE_PATH"
         exit 1
     fi
-    
+
     if [[ ! -r "$FILE_PATH" ]]; then
         log_error "File not readable: $FILE_PATH"
         exit 1
     fi
-    
+
     # Get file size for progress tracking
     TOTAL_SIZE=$(stat -f%z "$FILE_PATH" 2>/dev/null || stat -c%s "$FILE_PATH" 2>/dev/null || echo "0")
-    
+
     log_success "Parameter validation completed"
     log_info "File: $FILE_PATH"
     log_info "Type: $CONTROLLER_TYPE"
@@ -221,26 +221,26 @@ format_bytes() {
 # Generate S3 key path using metadata script
 generate_s3_key() {
     log_progress "Extracting version metadata..."
-    
+
     # Get version metadata from the metadata script
     local metadata_script="$SCRIPT_DIR/generate-version-metadata.sh"
     if [[ ! -f "$metadata_script" ]]; then
         log_error "Version metadata script not found: $metadata_script"
         exit 1
     fi
-    
+
     # Extract shortVersion from metadata script
     local short_version
     if ! short_version=$("$metadata_script" --output-json 2>/dev/null | jq -r '.shortVersion' 2>/dev/null); then
         log_error "Failed to extract version metadata"
         exit 1
     fi
-    
+
     if [[ -z "$short_version" ]] || [[ "$short_version" == "null" ]]; then
         log_error "Could not extract shortVersion from metadata script"
         exit 1
     fi
-    
+
     log_info "Using extracted version: v$short_version"
     local s3_key="${S3_KEY_PREFIX}/v${short_version}/px4_fmu-${CONTROLLER_TYPE}_default.px4"
     echo "$s3_key"
@@ -250,7 +250,7 @@ generate_s3_key() {
 generate_checksum() {
     local file_path="$1"
     log_progress "Generating SHA256 checksum..."
-    
+
     local checksum
     if command -v sha256sum >/dev/null 2>&1; then
         checksum=$(sha256sum "$file_path" | cut -d' ' -f1)
@@ -260,7 +260,7 @@ generate_checksum() {
         log_error "Neither sha256sum nor shasum command found"
         exit 1
     fi
-    
+
     log_success "Checksum generated: $checksum"
     echo "$checksum"
 }
@@ -268,19 +268,19 @@ generate_checksum() {
 # Validate AWS environment
 validate_aws_environment() {
     log_info "Validating AWS environment..."
-    
+
     # Check if aws-cross-account.sh exists
     local aws_script="$SCRIPT_DIR/aws-cross-account.sh"
     if [[ ! -f "$aws_script" ]]; then
         log_error "AWS cross-account script not found: $aws_script"
         exit 1
     fi
-    
+
     if [[ ! -x "$aws_script" ]]; then
         log_error "AWS cross-account script not executable: $aws_script"
         exit 1
     fi
-    
+
     # Test AWS authentication
     if [[ "$DRY_RUN" == false ]]; then
         log_info "Testing AWS authentication..."
@@ -298,14 +298,14 @@ validate_aws_environment() {
 check_s3_object_exists() {
     local s3_key="$1"
     local aws_script="$SCRIPT_DIR/aws-cross-account.sh"
-    
+
     log_info "Checking if S3 object already exists: s3://$S3_BUCKET/$s3_key"
-    
+
     if [[ "$DRY_RUN" == true ]]; then
         log_info "Skipping S3 existence check in dry-run mode"
         return 0
     fi
-    
+
     if "$aws_script" s3api head-object --bucket "$S3_BUCKET" --key "$s3_key" >/dev/null 2>&1; then
         if [[ "$FORCE_OVERWRITE" == true ]]; then
             log_warn "Object exists but --force-overwrite specified, will overwrite"
@@ -327,21 +327,21 @@ upload_to_s3() {
     local s3_key="$2"
     local checksum="$3"
     local aws_script="$SCRIPT_DIR/aws-cross-account.sh"
-    
+
     # Build metadata
     local git_commit
     local git_branch
     local build_date
-    
+
     git_commit=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
     git_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
     build_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    
+
     local metadata="git-commit=$git_commit,git-branch=$git_branch,build-date=$build_date,controller-type=$CONTROLLER_TYPE,version=$VERSION,sha256=$checksum,file-size=$TOTAL_SIZE"
-    
+
     log_progress "Uploading to S3: s3://$S3_BUCKET/$s3_key"
     log_info "Metadata: $metadata"
-    
+
     if [[ "$DRY_RUN" == true ]]; then
         log_info "🧪 DRY-RUN: Would upload file with the following command:"
         echo "    $aws_script s3 cp \"$file_path\" \"s3://$S3_BUCKET/$s3_key\" \\"
@@ -350,41 +350,41 @@ upload_to_s3() {
         echo "      --metadata-directive REPLACE"
         return 0
     fi
-    
+
     # Start timing upload
     UPLOAD_START_TIME=$(date +%s)
-    
+
     # Perform upload with retry logic
     local max_retries="${MAX_RETRIES:-3}"
     local timeout="${UPLOAD_TIMEOUT:-300}"
-    
+
     for ((attempt=1; attempt<=max_retries; attempt++)); do
         log_progress "Upload attempt $attempt of $max_retries..."
-        
+
         # Try with timeout if available, otherwise run directly
         if command -v timeout >/dev/null 2>&1; then
             timeout_cmd="timeout $timeout"
         else
             timeout_cmd=""
         fi
-        
+
         if $timeout_cmd "$aws_script" s3 cp "$file_path" "s3://$S3_BUCKET/$s3_key" \
             --content-type "application/octet-stream" \
             --metadata "$metadata" \
             --metadata-directive REPLACE; then
-            
+
             # Calculate upload duration
             local upload_end_time=$(date +%s)
             local upload_duration=$((upload_end_time - UPLOAD_START_TIME))
             local upload_speed
-            
+
             if [[ $upload_duration -gt 0 ]]; then
                 upload_speed=$((TOTAL_SIZE / upload_duration))
                 log_success "Upload completed in ${upload_duration}s ($(format_bytes $upload_speed)/s)"
             else
                 log_success "Upload completed"
             fi
-            
+
             return 0
         else
             local exit_code=$?
@@ -405,24 +405,24 @@ verify_upload_integrity() {
     local s3_key="$1"
     local expected_checksum="$2"
     local aws_script="$SCRIPT_DIR/aws-cross-account.sh"
-    
+
     log_progress "Verifying upload integrity..."
-    
+
     if [[ "$DRY_RUN" == true ]]; then
         log_info "🧪 DRY-RUN: Would verify upload integrity"
         return 0
     fi
-    
+
     # Get object metadata to verify upload
     local metadata_json
     if metadata_json=$("$aws_script" s3api head-object --bucket "$S3_BUCKET" --key "$s3_key" --output json 2>/dev/null); then
         # Extract metadata - user metadata is under "Metadata" key
         local stored_checksum
         stored_checksum=$(echo "$metadata_json" | jq -r '.Metadata.sha256 // empty' 2>/dev/null)
-        
+
         local stored_size
         stored_size=$(echo "$metadata_json" | jq -r '.ContentLength // empty' 2>/dev/null)
-        
+
         # Verify checksum
         if [[ "$stored_checksum" == "$expected_checksum" ]]; then
             log_success "Checksum verification passed"
@@ -430,7 +430,7 @@ verify_upload_integrity() {
             log_error "Checksum mismatch! Expected: $expected_checksum, Got: $stored_checksum"
             return 1
         fi
-        
+
         # Verify file size
         if [[ "$stored_size" == "$TOTAL_SIZE" ]]; then
             log_success "File size verification passed ($stored_size bytes)"
@@ -438,7 +438,7 @@ verify_upload_integrity() {
             log_error "File size mismatch! Expected: $TOTAL_SIZE, Got: $stored_size"
             return 1
         fi
-        
+
         log_success "Upload integrity verification completed"
         return 0
     else
@@ -451,7 +451,7 @@ verify_upload_integrity() {
 cleanup_on_error() {
     local s3_key="$1"
     local aws_script="$SCRIPT_DIR/aws-cross-account.sh"
-    
+
     if [[ "$DRY_RUN" == false ]] && [[ -n "$s3_key" ]]; then
         log_warn "Cleaning up failed upload..."
         "$aws_script" s3 rm "s3://$S3_BUCKET/$s3_key" >/dev/null 2>&1 || true
@@ -461,32 +461,32 @@ cleanup_on_error() {
 # Main function
 main() {
     log_info "Starting S3 binary upload process..."
-    
+
     if [[ "$DRY_RUN" == true ]]; then
         log_info "🧪 DRY-RUN MODE: No actual uploads will be performed"
     fi
-    
+
     # Parse arguments
     parse_args "$@"
-    
+
     # Validate parameters
     validate_parameters
-    
+
     # Validate AWS environment
     validate_aws_environment
-    
+
     # Generate S3 key
     local s3_key
     s3_key=$(generate_s3_key)
     log_info "Target S3 path: s3://$S3_BUCKET/$s3_key"
-    
+
     # Check if object already exists
     check_s3_object_exists "$s3_key"
-    
+
     # Generate checksum
     local checksum
     checksum=$(generate_checksum "$FILE_PATH")
-    
+
     # Upload to S3
     if [[ "$DRY_RUN" == true ]]; then
         log_info "🧪 DRY-RUN: Upload summary:"
