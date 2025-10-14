@@ -21,9 +21,6 @@ git config --get push.followTags
 
 This commit should trigger automatic versioning and create v1.15.4-1.2.4
 
-## Update
-
-Updated to test the improved version detection logic.
 # AvesAID Auto-Versioning Update
 
 The post-commit hook has been updated to auto-version on all branches except 'main'.
