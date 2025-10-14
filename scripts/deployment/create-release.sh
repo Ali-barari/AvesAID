@@ -39,8 +39,14 @@ fi
 HIGHEST_VERSION=$(echo "$FULL_TAG" | sed 's/^v[^-]*-/v/')
 log "Found tag: $FULL_TAG, extracted version: $HIGHEST_VERSION"
 
-# Generate release notes from recent commits
+# Generate release notes from recent commits (truncate to 1000 chars for API Gateway limit)
 RELEASE_NOTES=$(git log --format="• %s" HEAD~10..HEAD 2>/dev/null | grep -v "^• Merged in" | head -20 | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *• *//' || echo "Updates and improvements")
+
+# Truncate release notes to 1000 characters (API Gateway limit)
+if [ ${#RELEASE_NOTES} -gt 1000 ]; then
+    RELEASE_NOTES="${RELEASE_NOTES:0:997}..."
+    log "Release notes truncated to 1000 characters"
+fi
 
 if [[ "$DRY_RUN" == true ]]; then
     echo "[DRY-RUN] Would publish version: $HIGHEST_VERSION" >&2
