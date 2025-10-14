@@ -44,12 +44,12 @@ Updated: Tue 16 Sep 2025 04:05:25 PM PDT
    # Always work on develop
    git checkout develop
    git pull origin develop
-   
+
    # Make your changes
    git add .
    git commit -m "feat: your changes"
    git push origin develop
-   
+
    # When ready to release
    git checkout main
    git pull origin main
@@ -63,9 +63,9 @@ Updated: Tue 16 Sep 2025 04:05:25 PM PDT
    git checkout develop
    git cherry-pick <commit-from-main>
    git push origin develop
-   
+
    # Option 2: Merge main into develop first
-   git checkout develop  
+   git checkout develop
    git merge main
    git push origin develop
    ```
