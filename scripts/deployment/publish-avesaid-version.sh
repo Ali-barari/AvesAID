@@ -49,25 +49,43 @@ for TYPE in v6c v6x; do
     TOTAL_COUNT=$((TOTAL_COUNT + 1))
 
     # Extract S3 metadata
-    SHA256=$(echo "$METADATA" | jq -r '.Metadata.sha256 // "unknown"')
-    SIZE=$(echo "$METADATA" | jq -r '.ContentLength // 0')
+    SHA256=$(echo "$METADATA" | jq -r '.Metadata.sha256 // empty')
+    SIZE=$(echo "$METADATA" | jq -r '.ContentLength')
 
-    # Escape release notes for JSON
-    ESCAPED_NOTES=$(echo "$RELEASE_NOTES" | sed 's/"/\\"/g')
+    # Validate metadata
+    if [[ -z "$SHA256" ]] || [[ "$SHA256" == "null" ]]; then
+        echo "Error: SHA256 not found in S3 metadata for $TYPE" >&2
+        exit 1
+    fi
 
-    # Create API payload
-    PAYLOAD=$(cat <<EOF
-{
-    "version": "$SHORT_VERSION",
-    "s3Key": "$S3_KEY",
-    "sha256": "$SHA256",
-    "size": $SIZE,
-    "releaseNotes": "$ESCAPED_NOTES",
-    "mandatory": false,
-    "rolloutPercentage": 100
-}
-EOF
-    )
+    if [[ -z "$SIZE" ]] || [[ "$SIZE" == "null" ]] || [[ "$SIZE" -le 0 ]]; then
+        echo "Error: Invalid size ($SIZE) in S3 metadata for $TYPE" >&2
+        exit 1
+    fi
+
+    # Create API payload using jq for proper JSON escaping
+    PAYLOAD=$(jq -n \
+        --arg version "$SHORT_VERSION" \
+        --arg s3Key "$S3_KEY" \
+        --arg sha256 "$SHA256" \
+        --argjson size "$SIZE" \
+        --arg releaseNotes "$RELEASE_NOTES" \
+        '{
+            version: $version,
+            s3Key: $s3Key,
+            sha256: $sha256,
+            size: $size,
+            releaseNotes: $releaseNotes,
+            mandatory: false,
+            rolloutPercentage: 100
+        }')
+
+    # Debug: Show payload (only in verbose mode or if DEBUG env var is set)
+    if [[ "${DEBUG:-false}" == "true" ]]; then
+        echo "DEBUG: API Payload for $TYPE:" >&2
+        echo "$PAYLOAD" | jq '.' >&2
+        echo "---" >&2
+    fi
 
     # Make API request
     echo "Publishing $TYPE version $SHORT_VERSION..."

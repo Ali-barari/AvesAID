@@ -84,6 +84,7 @@ definitions:
             export CROSS_ACCOUNT_SESSION_NAME="AvestecFlightControllerDeployment"
             export UPDATE_API_URL="$UPDATE_API_URL"
             export UPDATE_API_KEY="$UPDATE_API_KEY"
+            export DEBUG=true
             echo "Generating version metadata..."
             ./scripts/deployment/create-release.sh --verbose > version_info.json
             VERSION=$(jq -r '.version' version_info.json)
