@@ -25,10 +25,16 @@ done
 
 SHORT_VERSION="${VERSION#v}"
 
-# Generate release notes from git history
+# Generate release notes from git history (truncate to 1000 chars for API Gateway limit)
 RELEASE_NOTES=$(git log --format="• %s" HEAD~10..HEAD 2>/dev/null | \
     grep -v "^• Merged in" | head -20 | tr '\n' ' ' | \
     sed 's/  */ /g' | sed 's/^ *• *//' || echo "Updates and improvements")
+
+# Truncate release notes to 1000 characters (API Gateway limit)
+if [ ${#RELEASE_NOTES} -gt 1000 ]; then
+    RELEASE_NOTES="${RELEASE_NOTES:0:997}..."
+    echo "Release notes truncated to 1000 characters" >&2
+fi
 
 # Publish binaries for both controller types
 PUBLISHED_COUNT=0
