@@ -86,13 +86,6 @@ for TYPE in v6c v6x; do
             rolloutPercentage: 100
         }')
 
-    # Debug: Show payload (only in verbose mode or if DEBUG env var is set)
-    if [[ "${DEBUG:-false}" == "true" ]]; then
-        echo "DEBUG: API Payload for $TYPE:" >&2
-        echo "$PAYLOAD" | jq '.' >&2
-        echo "---" >&2
-    fi
-
     # Make API request
     echo "Publishing $TYPE version $SHORT_VERSION..."
 
