@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Pre-commit hook that automatically sets up the repository
+# This runs before any commit and ensures everything is configured
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+SETUP_MARKER="$REPO_ROOT/.git/avescore_setup_complete"
+
+# Check if setup has already been completed
+if [ ! -f "$SETUP_MARKER" ]; then
+    echo "🔧 First commit detected - setting up AvesCore auto-tagging..."
+    
+    # Configure git to push tags with commits
+    git config push.followTags true
+    echo "✅ Configured git to automatically push tags with commits"
+    
+    # Install all hooks from config directory
+    if [ -d "$REPO_ROOT/config/git-hooks" ]; then
+        for hook_file in "$REPO_ROOT/config/git-hooks"/*; do
+            if [ -f "$hook_file" ]; then
+                hook_name=$(basename "$hook_file")
+                cp "$hook_file" "$REPO_ROOT/.git/hooks/$hook_name"
+                chmod +x "$REPO_ROOT/.git/hooks/$hook_name"
+                echo "✅ Installed git hook: $hook_name"
+            fi
+        done
+    fi
+    
+    # Mark setup as complete
+    touch "$SETUP_MARKER"
+    echo "🎉 AvesCore auto-tagging setup complete!"
+    echo ""
+fi
+
+# Continue with normal pre-commit operations (if any)
+exit 0

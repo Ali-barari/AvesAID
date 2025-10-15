@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Post-checkout hook - runs after git checkout (including git clone)
+# This ensures git configuration is set up on new clones
+
+# Auto-configure git to push tags with commits
+if [ "$(git config --get push.followTags)" != "true" ]; then
+    git config push.followTags true
+    echo "✅ Configured git to automatically push tags with commits"
+fi
+
+# Ensure post-commit hook is executable
+POST_COMMIT_HOOK="$(git rev-parse --git-dir)/hooks/post-commit"
+if [ -f "$POST_COMMIT_HOOK" ] && [ ! -x "$POST_COMMIT_HOOK" ]; then
+    chmod +x "$POST_COMMIT_HOOK"
+    echo "✅ Made post-commit hook executable"
+fi
