@@ -99,8 +99,39 @@ definitions:
           - echo "AvesAID deployment completed"
         trigger: manual
 
+    - step: &mark-faulty-version
+        name: Mark Version as Faulty
+        script:
+          - echo "Faulty version marking initiated"
+          - |
+            echo "Tag: $BITBUCKET_TAG"
+          - echo "Fetching git tags..."
+          - git fetch --tags
+          - echo "Installing required tools..."
+          - export DEBIAN_FRONTEND=noninteractive
+          - apt-get update && apt-get install -y awscli jq
+          - echo "Setting up deployment scripts..."
+          - chmod +x scripts/deployment/*.sh
+          - |
+            export AWS_ACCESS_KEY_ID="$MANAGEMENT_AWS_ACCESS_KEY_ID"
+            export AWS_SECRET_ACCESS_KEY="$MANAGEMENT_AWS_SECRET_ACCESS_KEY"
+            export AWS_DEFAULT_REGION="$AWS_REGION"
+            export AWS_REGION="${AWS_REGION:-ca-central-1}"
+            export CROSS_ACCOUNT_ROLE_ARN="$CROSS_ACCOUNT_ROLE_ARN"
+            export CROSS_ACCOUNT_EXTERNAL_ID="$CROSS_ACCOUNT_EXTERNAL_ID"
+            export CROSS_ACCOUNT_SESSION_NAME="AvesAIDFaultyMarking"
+            export ENVIRONMENT="${ENVIRONMENT:-prod}"
+            echo "Executing mark-faulty-version script..."
+            ./scripts/deployment/mark-faulty-version.sh
+        after-script:
+          - echo "Faulty version marking completed"
+
 pipelines:
   branches:
     main:
       - step: *build-step
       - step: *deploy-avesaid
+
+  tags:
+    'faulty/*':
+      - step: *mark-faulty-version
