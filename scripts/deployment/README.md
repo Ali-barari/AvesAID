@@ -7,6 +7,7 @@ Automated AvesAID deployment pipeline for PX4 flight controller binaries with S3
 - **`generate-version-metadata.sh`**: Extract version info from git tags (supports `v1.15.4-1.2.3` format)
 - **`upload-flight-controller-binary.sh`**: Upload binaries to S3 with SHA256 validation
 - **`publish-avesaid-version.sh`**: Publish versions via API (supports PX4-AvesAID version format)
+- **`mark-faulty-version.sh`**: Mark released versions as faulty to prevent distribution to devices
 - **`aws-cross-account.sh`**: Handle cross-account AWS authentication
 
 ## Environment Variables
@@ -86,6 +87,54 @@ curl -X POST "$UPDATE_API_URL/v1/components/flightController/publish" \
 
 ### Common Issues
 - **HTTP 409**: Version already exists (expected for duplicate versions)
-- **HTTP 400**: Invalid payload format or version format  
+- **HTTP 400**: Invalid payload format or version format
 - **AWS auth errors**: Check cross-account role configuration
 - **S3 upload failures**: Verify bucket permissions and file paths
+
+---
+
+## Marking Released Versions as Faulty
+
+If a released firmware version is discovered to have critical bugs, mark it as faulty to prevent distribution to devices.
+
+### Quick Start
+
+1. **Identify the faulty version** (must already be released and in S3)
+   - Example: v1.15.4-1.5.3
+
+2. **Create annotated git tag with reason**:
+   ```bash
+   git tag -a faulty/v1.15.4-1.5.3 -m "Critical boot failure on v6c hardware rev 2"
+   ```
+
+3. **Push tag to trigger pipeline**:
+   ```bash
+   git push origin faulty/v1.15.4-1.5.3
+   ```
+
+4. **Monitor Bitbucket pipeline** - Verify "Mark Version as Faulty" step succeeds
+
+5. **Confirm in DynamoDB** (optional):
+   ```bash
+   ./scripts/deployment/aws-cross-account.sh dynamodb get-item \
+       --table-name avestec-prod-update-system \
+       --key '{"PK": {"S": "COMPONENT#flight"}, "SK": {"S": "VERSION#1.15.4-1.5.3"}}' \
+       --region ca-central-1
+   ```
+
+### Tag Naming Rules
+- **Format**: `faulty/v{version}` (e.g., `faulty/v1.15.4-1.5.3`)
+- **Version**: Must match existing release compound format (e.g., `1.15.4-1.5.3`)
+- **Annotation**: Always include reason via `-a -m "reason"`
+
+### What Happens
+- ✓ Both v6c and v6x binaries marked faulty together
+- ✓ DynamoDB updated: `healthy=false`, `faultyReason`, `markedFaultyAt`
+- ✓ Remote update system automatically filters out faulty versions
+- ✓ Devices will NOT receive faulty version during update checks
+
+### Troubleshooting
+- **"Version not found in S3"**: Version must be released first
+- **"Version not found in DynamoDB"**: Version must be published via API before marking faulty
+- **"Invalid tag format"**: Use `faulty/v1.15.4-1.5.3` not `faulty-v1.15.4-1.5.3`
+- **Pipeline not triggered**: Verify tag pushed to main branch
