@@ -25,7 +25,7 @@ CROSS_ACCOUNT_ROLE_ARN=arn:aws:iam::<account-id>:role/<role-name>
 CROSS_ACCOUNT_EXTERNAL_ID=<external-id>
 CROSS_ACCOUNT_SESSION_NAME=<session-name>
 
-# API Configuration  
+# API Configuration
 UPDATE_API_URL=https://<api-id>.execute-api.<region>.amazonaws.com/<stage>
 UPDATE_API_KEY=<api-key>
 ```
@@ -48,7 +48,7 @@ MAX_RETRIES=3         # Retry attempts (default: 3)
 
 ### Production Deployment
 ```bash
-# 1. Get current version  
+# 1. Get current version
 VERSION=$(./scripts/deployment/generate-version-metadata.sh --output-json | jq -r '.version')
 
 # 2. Upload binaries
@@ -62,7 +62,7 @@ VERSION=$(./scripts/deployment/generate-version-metadata.sh --output-json | jq -
 ## Key Features
 
 - **Full PX4-AvesAID Version Support**: API now supports `v1.15.4-1.2.3` format (preserves both PX4 and AvesAID version info)
-- **Individual Binary Publishing**: Sends separate API requests per binary type (v6c, v6x) 
+- **Individual Binary Publishing**: Sends separate API requests per binary type (v6c, v6x)
 - **Comprehensive Error Handling**: HTTP 409 (version exists), HTTP 400 validation, retry logic
 - **Dry-Run Testing**: All scripts support `--dry-run` for safe testing
 - **Cross-Account AWS**: Secure role assumption for AWS operations
@@ -75,7 +75,7 @@ VERSION=$(./scripts/deployment/generate-version-metadata.sh --output-json | jq -
 # Test AWS connectivity
 ./scripts/deployment/aws-cross-account.sh sts get-caller-identity
 
-# Test API with curl  
+# Test API with curl
 curl -X POST "$UPDATE_API_URL/v1/components/flightController/publish" \
   -H "x-api-key: $UPDATE_API_KEY" \
   -H "Content-Type: application/json" \
@@ -114,14 +114,6 @@ If a released firmware version is discovered to have critical bugs, mark it as f
 
 4. **Monitor Bitbucket pipeline** - Verify "Mark Version as Faulty" step succeeds
 
-5. **Confirm in DynamoDB** (optional):
-   ```bash
-   ./scripts/deployment/aws-cross-account.sh dynamodb get-item \
-       --table-name avestec-prod-update-system \
-       --key '{"PK": {"S": "COMPONENT#flight"}, "SK": {"S": "VERSION#1.15.4-1.5.3"}}' \
-       --region ca-central-1
-   ```
-
 ### Tag Naming Rules
 - **Format**: `faulty/v{version}` (e.g., `faulty/v1.15.4-1.5.3`)
 - **Version**: Must match existing release compound format (e.g., `1.15.4-1.5.3`)
@@ -132,9 +124,3 @@ If a released firmware version is discovered to have critical bugs, mark it as f
 - ✓ DynamoDB updated: `healthy=false`, `faultyReason`, `markedFaultyAt`
 - ✓ Remote update system automatically filters out faulty versions
 - ✓ Devices will NOT receive faulty version during update checks
-
-### Troubleshooting
-- **"Version not found in S3"**: Version must be released first
-- **"Version not found in DynamoDB"**: Version must be published via API before marking faulty
-- **"Invalid tag format"**: Use `faulty/v1.15.4-1.5.3` not `faulty-v1.15.4-1.5.3`
-- **Pipeline not triggered**: Verify tag pushed to main branch
