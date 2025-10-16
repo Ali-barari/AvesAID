@@ -22,6 +22,8 @@ if [[ ! "$BITBUCKET_TAG" =~ ^faulty/v([0-9]+\.[0-9]+\.[0-9]+(-[0-9]+\.[0-9]+\.[0
 fi
 
 VERSION="${BASH_REMATCH[1]}"
+# Extract semantic version: 1.15.4-1.5.9 → 1.5.9
+VERSION=$(echo "$VERSION" | sed 's/^[^-]*-//')
 echo "Processing faulty tag for version: $VERSION"
 
 # Verify at least one binary exists in S3
