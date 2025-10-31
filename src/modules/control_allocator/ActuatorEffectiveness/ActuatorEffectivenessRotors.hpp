@@ -47,6 +47,7 @@
 #include <uORB/Subscription.hpp>
 #include <uORB/SubscriptionInterval.hpp>
 #include <uORB/topics/avesaid_status.h> // AvesAID status
+#include <uORB/topics/vehicle_control_mode.h>
 
 class ActuatorEffectivenessTilts;
 
@@ -132,14 +133,8 @@ public:
 	uint32_t getForwardsMotors() const;
 
 	orb_advert_t _mavlink_log_pub{nullptr}; // AvesAID: PAyload deployment: mavlink log publisher
-		/**
-	 * AvesAID: Check for payload status changes and update rotor positions if needed.
-	 * This allows real-time position updates during flight when magnets turn off.
-	 */
-	void checkPayloadStatusChange(); //AvesAID: payload deployment:
-
 	/**
-	 * AvesAID: Apply current offset factor to all rotor positions
+	 * Apply current offset factor to all rotor positions (AvesAID: payload offset support at param update/startup)
 	 */
 	void updateRotorPositions(); //AvesAID: apply offset to rotors
 
@@ -166,8 +161,10 @@ private:
 	// AvesAID status subscription and tracking
 	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; // AvesAID status subscription
 	avesaid_status_s avesaid_status{}; //AvesAID: AVESAID_STATUS
+	// Vehicle control mode subscription to check armed state (ensure pre-takeoff updates only)
+	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)};
+	vehicle_control_mode_s _vehicle_control_mode{};
 	bool _prev_payload_enabled{false}; //AvesAID: payload deployment: previous payload enabled status
-	bool _payload_status_changed{false}; //AvesAID: flag to trigger effectiveness matrix update
 
 	// AvesAID: Payload offset variables
 	float _current_offset_factor{0.0f}; //AvesAID: current offset factor (0.0 to 1.0)

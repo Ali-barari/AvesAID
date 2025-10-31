@@ -84,12 +84,6 @@ ActuatorEffectivenessRotors::ActuatorEffectivenessRotors(ModuleParams *parent, A
 		}
 	}
 
-	// AvesAID: Initialize payload status tracking
-	// avesaid_status_s avesaid_status{};
-	if (_avesaid_status_sub.update(&avesaid_status)) {
-		_prev_payload_enabled = avesaid_status.flag_payload_enabled;
-	}
-
 	updateParams();
 }
 
@@ -136,35 +130,9 @@ void ActuatorEffectivenessRotors::updateParams()
 		}
 	}
 
-	// AvesAID: Re-apply payload offset after loading base positions
-	// This ensures offset state is preserved when parameters are updated (e.g., during arm/disarm)
-	updateRotorPositions();
-
-	if (fabsf(_current_offset_factor) > 0.001f) {
-		mavlink_log_info(&_mavlink_log_pub, "AvesAID: Offset preserved after param update, factor=%.3f", (double)_current_offset_factor);
-	}
+	// Payload offsets are applied only via AVESAID commands (pre-takeoff). Do not re-apply offsets on startup/param reload.
 }
 
-void ActuatorEffectivenessRotors::checkPayloadStatusChange() // AvesAID: payload deployment status check
-{
-	// Check for new AvesAID status updates
-	if (_avesaid_status_sub.update(&avesaid_status)) {
-		bool current_payload_enabled = avesaid_status.flag_payload_enabled;
-
-		// If payload status changed, apply immediate transition
-		if (current_payload_enabled != _prev_payload_enabled) {
-			_prev_payload_enabled = current_payload_enabled;
-
-			// Apply immediate transition
-			_current_offset_factor = current_payload_enabled ? 1.0f : 0.0f;
-			updateRotorPositions();
-			_payload_status_changed = true;
-
-			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Payload %s - immediate update for %d rotors",
-				current_payload_enabled ? "ENABLED" : "DISABLED", _geometry.num_rotors);
-		}
-	}
-}
 
 void ActuatorEffectivenessRotors::updateRotorPositions() // AvesAID: Apply current offset to all rotors
 {
@@ -363,13 +331,31 @@ bool
 ActuatorEffectivenessRotors::getEffectivenessMatrix(Configuration &configuration,
 		EffectivenessUpdateReason external_update)
 {
+	// Always rebuild the effectiveness matrix when requested externally.
 	if (external_update == EffectivenessUpdateReason::NO_EXTERNAL_UPDATE) {
-		// AvesAID: Check if payload status changed and matrix needs regeneration
-		if (_payload_status_changed) {
-			_payload_status_changed = false; // Reset flag
-			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Regenerating effectiveness matrix due to payload change");
-			return addActuators(configuration); // Regenerate matrix with new rotor positions
+		// Check for AVESAID messages and apply payload offset only pre-takeoff (disarmed)
+		if (_avesaid_status_sub.updated()) {
+			_avesaid_status_sub.copy(&avesaid_status);
+
+			// update vehicle control mode (non-blocking)
+			(void)_vehicle_control_mode_sub.update(&_vehicle_control_mode);
+
+			// Only apply changes before takeoff (when not armed)
+			if (!_vehicle_control_mode.flag_armed) {
+				if (avesaid_status.flag_payload_enabled != _prev_payload_enabled) {
+					_prev_payload_enabled = avesaid_status.flag_payload_enabled;
+					_current_offset_factor = avesaid_status.flag_payload_enabled ? 1.0f : 0.0f;
+					updateRotorPositions();
+
+					if (fabsf(_current_offset_factor) > 0.001f) {
+						mavlink_log_info(&_mavlink_log_pub, "AvesAID: Pre-takeoff payload enabled, applied rotor offset factor=%.3f", (double)_current_offset_factor);
+					} else {
+						mavlink_log_info(&_mavlink_log_pub, "AvesAID: Pre-takeoff payload disabled, cleared rotor offsets");
+					}
+				}
+			}
 		}
+
 		return false;
 	}
 

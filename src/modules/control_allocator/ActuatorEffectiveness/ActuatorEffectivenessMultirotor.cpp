@@ -56,10 +56,4 @@ ActuatorEffectivenessMultirotor::getEffectivenessMatrix(Configuration &configura
 	return rotors_added_successfully;
 }
 
-void ActuatorEffectivenessMultirotor::updateSetpoint(const matrix::Vector<float, NUM_AXES> &control_sp,
-		int matrix_index, ActuatorVector &actuator_sp, const matrix::Vector<float, NUM_ACTUATORS> &actuator_min,
-		const matrix::Vector<float, NUM_ACTUATORS> &actuator_max)
-{
-	// AvesAID: Check for payload status changes during each control update
-	_mc_rotors.checkPayloadStatusChange();
-}
+// runtime payload checks removed — payload/CG offsets are applied at startup/parameter reload only
