@@ -73,7 +73,7 @@ MulticopterRateControl::init()
 }
 
 void
-MulticopterRateControl::parameters_updated()
+MulticopterRateControl::parameters_updated(bool log_avesaid_change)
 {
 	// rate control parameters
 	// The controller gain K is used to convert the parallel (P + I/s + sD) form
@@ -84,10 +84,14 @@ MulticopterRateControl::parameters_updated()
 	Vector3f rate_i;
 	if (avesaid_status.flag_mode_partial_attachment_enabled || avesaid_status.flag_mode_attachment_enabled) {
 		rate_i = Vector3f(0.0f, 0.0f, 0.0f);
-		mavlink_log_info(&_mavlink_log_pub, "Full/Partially-Attached: Zero rate Integral\t");
+		if (log_avesaid_change) {
+			mavlink_log_info(&_mavlink_log_pub, "Full/Partially-Attached: Zero rate Integral\t");
+		}
 	} else {
 		rate_i = Vector3f(_param_mc_rollrate_i.get(), _param_mc_pitchrate_i.get(), _param_mc_yawrate_i.get());
-		mavlink_log_info(&_mavlink_log_pub, "Detached: Normal rate Integral\t");
+		if (log_avesaid_change) {
+			mavlink_log_info(&_mavlink_log_pub, "Detached: Normal rate Integral\t");
+		}
 	}
 
 	_rate_control.setPidGains(
@@ -184,7 +188,7 @@ MulticopterRateControl::Run()
 		if ((avesaid_status.flag_mode_partial_attachment_enabled != _prev_partial_attachment) ||
 			(avesaid_status.flag_mode_attachment_enabled != _prev_attachment)) {
 
-			parameters_updated(); // Update parameters when attachment state changes
+			parameters_updated(true); // Update parameters when attachment state changes, with logging
 			_prev_partial_attachment = avesaid_status.flag_mode_partial_attachment_enabled;
 
 			_prev_attachment = avesaid_status.flag_mode_attachment_enabled;

@@ -92,7 +92,7 @@ private:
 	/**
 	 * initialize some vectors/matrices from parameters
 	 */
-	void parameters_updated();
+	void parameters_updated(bool log_avesaid_change = false);
 
 	float throttle_curve(float throttle_stick_input);
 

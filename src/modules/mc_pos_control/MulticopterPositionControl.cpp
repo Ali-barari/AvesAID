@@ -70,7 +70,7 @@ bool MulticopterPositionControl::init()
 	return true;
 }
 
-void MulticopterPositionControl::parameters_update(bool force)
+void MulticopterPositionControl::parameters_update(bool force, bool log_avesaid_change)
 {
 	// check for parameter updates
 	if (_parameter_update_sub.updated() || force) {
@@ -198,10 +198,14 @@ void MulticopterPositionControl::parameters_update(bool force)
 		Vector3f velocity_i;
 		if (avesaid_status.flag_mode_partial_attachment_enabled || avesaid_status.flag_mode_attachment_enabled) {
 			velocity_i = Vector3f(0.0f, 0.0f, 0.0f);
-			mavlink_log_info(&_mavlink_log_pub, "Full/Partially-Attached: Zero velocity Integral\t");
+			if (log_avesaid_change) {
+				mavlink_log_info(&_mavlink_log_pub, "Full/Partially-Attached: Zero velocity Integral\t");
+			}
 		} else {
 			velocity_i = Vector3f(_param_mpc_xy_vel_i_acc.get(), _param_mpc_xy_vel_i_acc.get(), _param_mpc_z_vel_i_acc.get());
-			mavlink_log_info(&_mavlink_log_pub, "Detached: Normal velocity Integral\t");
+			if (log_avesaid_change) {
+				mavlink_log_info(&_mavlink_log_pub, "Detached: Normal velocity Integral\t");
+			}
 		}
 
 
@@ -430,7 +434,7 @@ void MulticopterPositionControl::Run()
 		if ((avesaid_status.flag_mode_partial_attachment_enabled != _prev_partial_attachment) ||
 			(avesaid_status.flag_mode_attachment_enabled != _prev_attachment)) {
 
-			parameters_update(true); // Update parameters when attachment state changes
+			parameters_update(true, true); // Update parameters when attachment state changes, with logging
 
 			_prev_partial_attachment = avesaid_status.flag_mode_partial_attachment_enabled;
 
