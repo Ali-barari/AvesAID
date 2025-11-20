@@ -200,6 +200,10 @@ MavlinkReceiver::handle_message(mavlink_message_t *msg)
 		handle_message_rc_channels_override(msg);
 		break;
 
+	case MAVLINK_MSG_ID_Sensor_Status: // MAVLINK_MSG_ID_SENSOR_STATUS (AvesAID custom message)
+		handle_message_sensor_status(msg);
+		break;
+
 	case MAVLINK_MSG_ID_HEARTBEAT:
 		handle_message_heartbeat(msg);
 		break;
@@ -849,6 +853,33 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 
 	avesaid_status.timestamp = hrt_absolute_time(); // AvesAID: AVESAID_STATUS
 	_avesaid_status_pub.publish(avesaid_status); //AvesAID: AVESAID_STATUS
+}
+
+void
+MavlinkReceiver::handle_message_sensor_status(mavlink_message_t *msg)
+{
+	// AvesAID: Receive Sensor_Status message (ID 3333) to get current arm_type and vehicle_type
+	// This enables automatic flight tuning parameter switching based on payload type
+	mavlink_sensor_status_t sensor_status_msg;
+	mavlink_msg_sensor_status_decode(msg, &sensor_status_msg);
+
+	// Update member avesaid_status with current arm and vehicle type
+	avesaid_status.timestamp = hrt_absolute_time();
+	avesaid_status.arm_type = sensor_status_msg.arm; // ARM enum: 0=UNKNOWN, 1=SPARM, 2=DELTA_ARM, 3=SURFACE_PREP, 4=LONG_ARM, 5=GIMBAL, 6=DEPLOYMENT
+	avesaid_status.vehicle_type = sensor_status_msg.vehicle; // VEHICLE enum: 0=UNKNOWN, 1=SN, 2=SB, 3=UT_CL, 4=EMAT_CL, 5=PA_CL
+
+	// Preserve existing flags (don't overwrite them)
+	avesaid_status_s current_status;
+	if (_avesaid_status_sub.copy(&current_status)) {
+		avesaid_status.flag_mode_attachment_enabled = current_status.flag_mode_attachment_enabled;
+		avesaid_status.flag_mode_partial_attachment_enabled = current_status.flag_mode_partial_attachment_enabled;
+		avesaid_status.flag_magnet_enabled = current_status.flag_magnet_enabled;
+		avesaid_status.flag_height_source_baro_enabled = current_status.flag_height_source_baro_enabled;
+		avesaid_status.flag_height_source_slam_enabled = current_status.flag_height_source_slam_enabled;
+		avesaid_status.flag_payload_enabled = current_status.flag_payload_enabled;
+	}
+
+	_avesaid_status_pub.publish(avesaid_status);
 }
 
 uint8_t MavlinkReceiver::handle_request_message_command(uint16_t message_id, float param2, float param3, float param4,

@@ -53,6 +53,8 @@
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/rate_ctrl_status.h>
 #include <uORB/topics/vehicle_angular_velocity.h>
+#include <uORB/topics/vehicle_command.h> // AvesAID: Flight tune switching based on payload type
+#include <uORB/topics/vehicle_command_ack.h> // AvesAID: Flight tune acknowledgment
 #include <uORB/topics/vehicle_control_mode.h>
 #include <uORB/topics/vehicle_land_detected.h>
 #include <uORB/topics/vehicle_rates_setpoint.h>
@@ -107,7 +109,7 @@ private:
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
 	uORB::Subscription _vehicle_rates_setpoint_sub{ORB_ID(vehicle_rates_setpoint)};
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
-	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; //AvesAID: AVESAID_STATUS
+	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; // AvesAID: AVESAID_STATUS
 
 
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
@@ -121,6 +123,7 @@ private:
 	uORB::Publication<vehicle_thrust_setpoint_s>	_vehicle_thrust_setpoint_pub;
 
 	avesaid_status_s avesaid_status{}; //AvesAID: AVESAID_STATUS
+	uint8_t _prev_arm_type{0}; //AvesAID: Track arm type changes for auto tuning
 
 	bool _prev_partial_attachment = false; //AvesAID: AVESAID_STATUS
 	bool _prev_attachment = false; //AvesAID: AVESAID_STATUS
@@ -169,6 +172,19 @@ private:
 		(ParamFloat<px4::params::MC_YAWRATE_D>) _param_mc_yawrate_d,
 		(ParamFloat<px4::params::MC_YAWRATE_FF>) _param_mc_yawrate_ff,
 		(ParamFloat<px4::params::MC_YAWRATE_K>) _param_mc_yawrate_k,
+
+		// AvesAID: Flight tune - Alternate rate control parameters (Secondary payload)
+		(ParamFloat<px4::params::MC_ROLLRATE_P2>) _param_mc_rollrate_p2,
+		(ParamFloat<px4::params::MC_ROLLRATE_I2>) _param_mc_rollrate_i2,
+		(ParamFloat<px4::params::MC_ROLLRATE_D2>) _param_mc_rollrate_d2,
+
+		(ParamFloat<px4::params::MC_PITCHRATE_P2>) _param_mc_pitchrate_p2,
+		(ParamFloat<px4::params::MC_PITCHRATE_I2>) _param_mc_pitchrate_i2,
+		(ParamFloat<px4::params::MC_PITCHRATE_D2>) _param_mc_pitchrate_d2,
+
+		(ParamFloat<px4::params::MC_YAWRATE_P2>) _param_mc_yawrate_p2,
+		(ParamFloat<px4::params::MC_YAWRATE_I2>) _param_mc_yawrate_i2,
+		(ParamFloat<px4::params::MC_YAWRATE_D2>) _param_mc_yawrate_d2,
 
 		(ParamFloat<px4::params::MC_ACRO_R_MAX>) _param_mc_acro_r_max,
 		(ParamFloat<px4::params::MC_ACRO_P_MAX>) _param_mc_acro_p_max,

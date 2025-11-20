@@ -87,9 +87,16 @@ void
 MulticopterAttitudeControl::parameters_updated()
 {
 	// Store some of the parameters in a more convenient way & precompute often-used values
-	_attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p.get(), _param_mc_pitch_p.get(), _param_mc_yaw_p.get()),
-					      _param_mc_yaw_weight.get());
-
+	// _attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p.get(), _param_mc_pitch_p.get(), _param_mc_yaw_p.get()),
+	// 				      _param_mc_yaw_weight.get());
+	// AvesAID: Check arm_type and apply appropriate attitude P gains
+	if (avesaid_status.arm_type == 4) { // LONG_ARM payload
+		_attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p2.get(), _param_mc_pitch_p2.get(), _param_mc_yaw_p2.get()),
+						      _param_mc_yaw_weight.get());
+	} else {
+		_attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p.get(), _param_mc_pitch_p.get(), _param_mc_yaw_p.get()),
+						      _param_mc_yaw_weight.get());
+	}
 	// angular rate limits
 	using math::radians;
 	_attitude_control.setRateLimit(Vector3f(radians(_param_mc_rollrate_max.get()), radians(_param_mc_pitchrate_max.get()),
@@ -219,6 +226,15 @@ MulticopterAttitudeControl::Run()
 		_last_run = v_att.timestamp_sample;
 
 		const Quatf q{v_att.q};
+
+		// AvesAID: Monitor avesaid_status for arm_type changes
+		_avesaid_status_sub.update(&avesaid_status);
+
+		// Check for arm_type change and update parameters if needed
+		if (avesaid_status.arm_type != _prev_arm_type) {
+			parameters_updated(); // Update parameters when arm_type changes
+			_prev_arm_type = avesaid_status.arm_type;
+		}
 
 		/* check for updates in other topics */
 		_manual_control_setpoint_sub.update(&_manual_control_setpoint);

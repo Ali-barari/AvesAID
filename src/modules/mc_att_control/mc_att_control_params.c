@@ -158,3 +158,48 @@ PARAM_DEFINE_FLOAT(MC_YAWRATE_MAX, 200.0f);
  * @group Multicopter Position Control
  */
 PARAM_DEFINE_FLOAT(MC_MAN_TILT_TAU, 0.0f);
+
+/**
+ * Alternate Roll P gain (Secondary Arm)
+ *
+ * Alternate tuning profile for roll P gain, optimized for Secondary Arm.
+ * Automatically loaded when MAV_CMD_FLIGHT_TUNE is sent with payload type = 4 (LONG_ARM).
+ * Use MAV_CMD_FLIGHT_TUNE to switch between primary and alternate parameters.
+ *
+ * @min 0.0
+ * @max 12
+ * @decimal 2
+ * @increment 0.1
+ * @group Multicopter Attitude Control
+ */
+PARAM_DEFINE_FLOAT(MC_ROLL_P2, 5.33f); // AvesAID: LongArm tune
+
+/**
+ * Alternate Pitch P gain (Secondary Arm)
+ *
+ * Alternate tuning profile for pitch P gain, optimized for Secondary Arm.
+ * Automatically loaded when MAV_CMD_FLIGHT_TUNE is sent with payload type = 4 (LONG_ARM).
+ * Use MAV_CMD_FLIGHT_TUNE to switch between primary and alternate parameters.
+ *
+ * @min 0.0
+ * @max 12
+ * @decimal 2
+ * @increment 0.1
+ * @group Multicopter Attitude Control
+ */
+PARAM_DEFINE_FLOAT(MC_PITCH_P2, 3.19f); // AvesAID: LongArm tune
+
+/**
+ * Alternate Yaw P gain (Secondary Arm)
+ *
+ * Alternate tuning profile for yaw P gain, optimized for Secondary Arm.
+ * Automatically loaded when MAV_CMD_FLIGHT_TUNE is sent with payload type = 4 (LONG_ARM).
+ * Use MAV_CMD_FLIGHT_TUNE to switch between primary and alternate parameters.
+ *
+ * @min 0.0
+ * @max 5
+ * @decimal 2
+ * @increment 0.1
+ * @group Multicopter Attitude Control
+ */
+PARAM_DEFINE_FLOAT(MC_YAW_P2, 3.99f); // AvesAID: LongArm tune

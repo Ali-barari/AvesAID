@@ -205,6 +205,7 @@ private:
 	void handle_message_radio_status(mavlink_message_t *msg);
 	void handle_message_rc_channels(mavlink_message_t *msg);
 	void handle_message_rc_channels_override(mavlink_message_t *msg);
+	void handle_message_sensor_status(mavlink_message_t *msg); // AvesAID: Receive arm/vehicle type for auto-tuning
 	void handle_message_serial_control(mavlink_message_t *msg);
 	void handle_message_set_attitude_target(mavlink_message_t *msg);
 	void handle_message_set_mode(mavlink_message_t *msg);
