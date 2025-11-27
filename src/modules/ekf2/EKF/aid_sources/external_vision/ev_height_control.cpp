@@ -131,7 +131,7 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 			if (_vehicle_status_sub.get().nav_state == vehicle_status_s::NAVIGATION_STATE_ALTCTL ||
 			    _vehicle_status_sub.get().nav_state == vehicle_status_s::NAVIGATION_STATE_STAB){
 
-				log_info_ev("PAUSING SLAM FUSION IN ALTCTL/STAB");
+				log_info_ev("AvesAID: PAUSING SLAM FUSION IN ALTCTL/STAB");
 				avesaid_status.flag_height_source_slam_enabled = false; // AvesAID: AvesAID_status
 				// _height_sensor_ref = HeightSensor::BARO;  // Ensure BARO is set in ALTCTL/STAB
 			} else {
