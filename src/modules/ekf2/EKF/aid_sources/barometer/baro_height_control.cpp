@@ -139,7 +139,7 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 		if (_control_status.flags.baro_hgt) {
 
 			if (continuing_conditions_passing) {
-				log_info_baro("BARO"); // AvesAID: updating the height reference
+				log_info_baro("AvesAID: BARO"); // AvesAID: updating the height reference
 				fuseVerticalPosition(aid_src);
 
 				avesaid_status.flag_height_source_baro_enabled = true; // AvesAID: AvesAID_status
@@ -195,7 +195,7 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 				bias_est.setFusionActive();
 				_control_status.flags.baro_hgt = true;
 
-				log_info_baro("START BARO"); // AvesAID: updating the height reference
+				log_info_baro("AvesAID:START BARO"); // AvesAID: updating the height reference
 
 
 			}
@@ -226,7 +226,7 @@ void Ekf::stopBaroHgtFusion()
 			_height_sensor_ref = HeightSensor::UNKNOWN;
 
 		}
-		log_info_baro("STOP BARO"); // AvesAID: updating the height reference
+		log_info_baro("AvesAID: STOP BARO"); // AvesAID: updating the height reference
 		_baro_b_est.setFusionInactive();
 
 		_control_status.flags.baro_hgt = false;

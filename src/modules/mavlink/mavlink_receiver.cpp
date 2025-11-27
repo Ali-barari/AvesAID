@@ -200,6 +200,10 @@ MavlinkReceiver::handle_message(mavlink_message_t *msg)
 		handle_message_rc_channels_override(msg);
 		break;
 
+	case MAVLINK_MSG_ID_Sensor_Status: // MAVLINK_MSG_ID_SENSOR_STATUS (AvesAID custom message)
+		handle_message_sensor_status(msg);
+		break;
+
 	case MAVLINK_MSG_ID_HEARTBEAT:
 		handle_message_heartbeat(msg);
 		break;
@@ -849,6 +853,28 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 
 	avesaid_status.timestamp = hrt_absolute_time(); // AvesAID: AVESAID_STATUS
 	_avesaid_status_pub.publish(avesaid_status); //AvesAID: AVESAID_STATUS
+}
+
+void
+MavlinkReceiver::handle_message_sensor_status(mavlink_message_t *msg)
+{
+	// AvesAID: Receive Sensor_Status message (ID 3333) from system 51, component 192
+	// This message contains arm_type and vehicle_type which are used to switch PID tuning parameters
+	mavlink_sensor_status_t sensor_status_msg;
+	mavlink_msg_sensor_status_decode(msg, &sensor_status_msg);
+
+	// Only process messages from system 51, component 192
+	if (msg->sysid == 51 && msg->compid == 192) {
+		PX4_INFO("Received sensor_Status from sys:%d comp:%d - arm:%d vehicle:%d", 
+			msg->sysid, msg->compid, sensor_status_msg.arm, sensor_status_msg.vehicle);
+
+		// Publish sensor_status uORB topic for attitude and rate controllers
+		sensor_status_s sensor_status{};
+		sensor_status.timestamp = hrt_absolute_time();
+		sensor_status.arm_type = sensor_status_msg.arm;
+		sensor_status.vehicle_type = sensor_status_msg.vehicle;
+		_sensor_status_pub.publish(sensor_status);
+	}
 }
 
 uint8_t MavlinkReceiver::handle_request_message_command(uint16_t message_id, float param2, float param3, float param4,

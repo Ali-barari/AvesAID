@@ -49,6 +49,9 @@
 #include <uORB/topics/autotune_attitude_control_status.h>
 #include <uORB/topics/vehicle_attitude.h>
 #include <uORB/topics/vehicle_attitude_setpoint.h>
+#include <uORB/topics/sensor_status.h> // AvesAID: Auto tune switching based on arm_type
+#include <uORB/topics/avesaid_status.h> // AvesAID: Attachment control flags
+#include <lib/systemlib/mavlink_log.h> //AvesAID: Attachment control
 #include <uORB/topics/vehicle_control_mode.h>
 #include <uORB/topics/vehicle_land_detected.h>
 #include <uORB/topics/vehicle_local_position.h>
@@ -79,6 +82,9 @@ public:
 
 	bool init();
 
+	orb_advert_t _mavlink_log_pub{nullptr}; // AvesAID: uarm tune
+
+
 private:
 	void Run() override;
 
@@ -101,6 +107,8 @@ private:
 	uORB::Subscription _autotune_attitude_control_status_sub{ORB_ID(autotune_attitude_control_status)};
 	uORB::Subscription _manual_control_setpoint_sub{ORB_ID(manual_control_setpoint)};
 	uORB::Subscription _vehicle_attitude_setpoint_sub{ORB_ID(vehicle_attitude_setpoint)};
+	uORB::Subscription _sensor_status_sub{ORB_ID(sensor_status)}; //AvesAID: Auto tune switching based on arm_type
+	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; //AvesAID: Attachment control flags
 	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)};
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
 	uORB::Subscription _vehicle_local_position_sub{ORB_ID(vehicle_local_position)};
@@ -138,6 +146,9 @@ private:
 	bool _vtol_tailsitter{false};
 	bool _vtol_in_transition_mode{false};
 
+	sensor_status_s sensor_status{}; //AvesAID: Sensor status for arm/vehicle type
+	uint8_t _prev_arm_type{0}; //AvesAID: Track arm type changes for auto tuning
+
 	uint8_t _quat_reset_counter{0};
 
 	DEFINE_PARAMETERS(
@@ -148,6 +159,11 @@ private:
 		(ParamFloat<px4::params::MC_PITCH_P>)       _param_mc_pitch_p,
 		(ParamFloat<px4::params::MC_YAW_P>)         _param_mc_yaw_p,
 		(ParamFloat<px4::params::MC_YAW_WEIGHT>)    _param_mc_yaw_weight,
+
+		// AvesAID: Flight tune - Alternate attitude control parameters (Secondary payload)
+		(ParamFloat<px4::params::MC_ROLL_P2>)       _param_mc_roll_p2,
+		(ParamFloat<px4::params::MC_PITCH_P2>)      _param_mc_pitch_p2,
+		(ParamFloat<px4::params::MC_YAW_P2>)        _param_mc_yaw_p2,
 
 		(ParamFloat<px4::params::MC_ROLLRATE_MAX>)  _param_mc_rollrate_max,
 		(ParamFloat<px4::params::MC_PITCHRATE_MAX>) _param_mc_pitchrate_max,

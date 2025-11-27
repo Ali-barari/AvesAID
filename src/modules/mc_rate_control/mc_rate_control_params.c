@@ -292,3 +292,133 @@ PARAM_DEFINE_FLOAT(MC_YAWRATE_K, 1.0f);
  * @group Multicopter Rate Control
  */
 PARAM_DEFINE_INT32(MC_BAT_SCALE_EN, 0);
+
+/**
+ * Alternate Roll rate P gain (LONG_ARM payload)
+ *
+ * Alternate tuning profile for roll rate P gain, optimized for LONG_ARM payload.
+ * Automatically loaded when MAV_CMD_FLIGHT_TUNE is sent with payload type = 4 (LONG_ARM).
+ * Use MAV_CMD_FLIGHT_TUNE to switch between primary and alternate parameters.
+ *
+ * @min 0.01
+ * @max 0.5
+ * @decimal 3
+ * @increment 0.01
+ * @group Multicopter Rate Control
+ */
+PARAM_DEFINE_FLOAT(MC_ROLLRATE_P2, 0.179f); // AvesAID: LongArm tune
+
+/**
+ * Alternate Roll rate I gain (LONG_ARM payload)
+ *
+ * Alternate tuning profile for roll rate I gain, optimized for LONG_ARM payload.
+ * Automatically loaded when MAV_CMD_FLIGHT_TUNE is sent with payload type = 4 (LONG_ARM).
+ * Use MAV_CMD_FLIGHT_TUNE to switch between primary and alternate parameters.
+ *
+ * @min 0.0
+ * @decimal 3
+ * @increment 0.01
+ * @group Multicopter Rate Control
+ */
+PARAM_DEFINE_FLOAT(MC_ROLLRATE_I2, 0.225f); // AvesAID: LongArm tune
+
+/**
+ * Alternate Roll rate D gain (LONG_ARM payload)
+ *
+ * Alternate tuning profile for roll rate D gain, optimized for LONG_ARM payload.
+ * Automatically loaded when MAV_CMD_FLIGHT_TUNE is sent with payload type = 4 (LONG_ARM).
+ * Use MAV_CMD_FLIGHT_TUNE to switch between primary and alternate parameters.
+ *
+ * @min 0.0
+ * @max 0.01
+ * @decimal 4
+ * @increment 0.0005
+ * @group Multicopter Rate Control
+ */
+PARAM_DEFINE_FLOAT(MC_ROLLRATE_D2, 0.004f); // AvesAID: LongArm tune
+
+/**
+ * Alternate Pitch rate P gain (LONG_ARM payload)
+ *
+ * Alternate tuning profile for pitch rate P gain, optimized for LONG_ARM payload.
+ * Automatically loaded when MAV_CMD_FLIGHT_TUNE is sent with payload type = 4 (LONG_ARM).
+ * Use MAV_CMD_FLIGHT_TUNE to switch between primary and alternate parameters.
+ *
+ * @min 0.01
+ * @max 0.6
+ * @decimal 3
+ * @increment 0.01
+ * @group Multicopter Rate Control
+ */
+PARAM_DEFINE_FLOAT(MC_PITCHRATE_P2, 0.300f); // AvesAID: LongArm tune
+
+/**
+ * Alternate Pitch rate I gain (LONG_ARM payload)
+ *
+ * Alternate tuning profile for pitch rate I gain, optimized for LONG_ARM payload.
+ * Automatically loaded when MAV_CMD_FLIGHT_TUNE is sent with payload type = 4 (LONG_ARM).
+ * Use MAV_CMD_FLIGHT_TUNE to switch between primary and alternate parameters.
+ *
+ * @min 0.0
+ * @decimal 3
+ * @increment 0.01
+ * @group Multicopter Rate Control
+ */
+PARAM_DEFINE_FLOAT(MC_PITCHRATE_I2, 0.409f); // AvesAID: LongArm tune
+
+/**
+ * Alternate Pitch rate D gain (LONG_ARM payload)
+ *
+ * Alternate tuning profile for pitch rate D gain, optimized for LONG_ARM payload.
+ * Automatically loaded when MAV_CMD_FLIGHT_TUNE is sent with payload type = 4 (LONG_ARM).
+ * Use MAV_CMD_FLIGHT_TUNE to switch between primary and alternate parameters.
+ *
+ * @min 0.0
+ * @decimal 4
+ * @increment 0.0005
+ * @group Multicopter Rate Control
+ */
+PARAM_DEFINE_FLOAT(MC_PITCHRATE_D2, 0.0092f); // AvesAID: LongArm tune
+
+/**
+ * Alternate Yaw rate P gain (LONG_ARM payload)
+ *
+ * Alternate tuning profile for yaw rate P gain, optimized for LONG_ARM payload.
+ * Automatically loaded when MAV_CMD_FLIGHT_TUNE is sent with payload type = 4 (LONG_ARM).
+ * Use MAV_CMD_FLIGHT_TUNE to switch between primary and alternate parameters.
+ *
+ * @min 0.0
+ * @max 0.6
+ * @decimal 2
+ * @increment 0.01
+ * @group Multicopter Rate Control
+ */
+PARAM_DEFINE_FLOAT(MC_YAWRATE_P2, 0.24f); // AvesAID: LongArm tune
+
+/**
+ * Alternate Yaw rate I gain (LONG_ARM payload)
+ *
+ * Alternate tuning profile for yaw rate I gain, optimized for LONG_ARM payload.
+ * Automatically loaded when MAV_CMD_FLIGHT_TUNE is sent with payload type = 4 (LONG_ARM).
+ * Use MAV_CMD_FLIGHT_TUNE to switch between primary and alternate parameters.
+ *
+ * @min 0.0
+ * @decimal 2
+ * @increment 0.01
+ * @group Multicopter Rate Control
+ */
+PARAM_DEFINE_FLOAT(MC_YAWRATE_I2, 0.226f); // AvesAID: LongArm tune
+
+/**
+ * Alternate Yaw rate D gain (LONG_ARM payload)
+ *
+ * Alternate tuning profile for yaw rate D gain, optimized for LONG_ARM payload.
+ * Automatically loaded when MAV_CMD_FLIGHT_TUNE is sent with payload type = 4 (LONG_ARM).
+ * Use MAV_CMD_FLIGHT_TUNE to switch between primary and alternate parameters.
+ *
+ * @min 0.0
+ * @decimal 2
+ * @increment 0.01
+ * @group Multicopter Rate Control
+ */
+PARAM_DEFINE_FLOAT(MC_YAWRATE_D2, 0.012f); // AvesAID: LongArm tune
