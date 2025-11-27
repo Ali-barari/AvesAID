@@ -90,12 +90,14 @@ MulticopterAttitudeControl::parameters_updated()
 	// _attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p.get(), _param_mc_pitch_p.get(), _param_mc_yaw_p.get()),
 	// 				      _param_mc_yaw_weight.get());
 	// AvesAID: Check arm_type and apply appropriate attitude P gains
-	if (avesaid_status.arm_type == 4) { // LONG_ARM payload
+	if (sensor_status.arm_type == 4 || sensor_status.arm_type == 3) { // LONG_ARM payload
 		_attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p2.get(), _param_mc_pitch_p2.get(), _param_mc_yaw_p2.get()),
-						      _param_mc_yaw_weight.get());
+					      _param_mc_yaw_weight.get());
+		mavlink_log_info(&_mavlink_log_pub, "AvesAID: Flight Tune: Secondary attitude\t");
 	} else {
 		_attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p.get(), _param_mc_pitch_p.get(), _param_mc_yaw_p.get()),
-						      _param_mc_yaw_weight.get());
+					      _param_mc_yaw_weight.get());
+		mavlink_log_info(&_mavlink_log_pub, "AvesAID: Flight Tune: Primary attitude\t");
 	}
 	// angular rate limits
 	using math::radians;
@@ -227,13 +229,13 @@ MulticopterAttitudeControl::Run()
 
 		const Quatf q{v_att.q};
 
-		// AvesAID: Monitor avesaid_status for arm_type changes
-		_avesaid_status_sub.update(&avesaid_status);
+		// AvesAID: Monitor sensor_status for arm_type changes
+		_sensor_status_sub.update(&sensor_status);
 
 		// Check for arm_type change and update parameters if needed
-		if (avesaid_status.arm_type != _prev_arm_type) {
+		if (sensor_status.arm_type != _prev_arm_type) {
 			parameters_updated(); // Update parameters when arm_type changes
-			_prev_arm_type = avesaid_status.arm_type;
+			_prev_arm_type = sensor_status.arm_type;
 		}
 
 		/* check for updates in other topics */

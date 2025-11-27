@@ -64,7 +64,8 @@
 #include <lib/slew_rate/SlewRate.hpp>
 #include <lib/systemlib/mavlink_log.h> //AvesAID: Attachment control
 #include <uORB/topics/attachment_control.h> //AvesAID: Attachment control
-#include <uORB/topics/avesaid_status.h> // AvesAID: flight
+#include <uORB/topics/sensor_status.h> // AvesAID: Auto tune based on arm/vehicle type
+#include <uORB/topics/avesaid_status.h> // AvesAID: Attachment control flags
 
 
 using namespace time_literals;
@@ -109,7 +110,8 @@ private:
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
 	uORB::Subscription _vehicle_rates_setpoint_sub{ORB_ID(vehicle_rates_setpoint)};
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
-	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; // AvesAID: AVESAID_STATUS
+	uORB::Subscription _sensor_status_sub{ORB_ID(sensor_status)}; // AvesAID: Auto tune based on arm/vehicle type
+	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; // AvesAID: Attachment control flags
 
 
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
@@ -122,7 +124,8 @@ private:
 	uORB::Publication<vehicle_torque_setpoint_s>	_vehicle_torque_setpoint_pub;
 	uORB::Publication<vehicle_thrust_setpoint_s>	_vehicle_thrust_setpoint_pub;
 
-	avesaid_status_s avesaid_status{}; //AvesAID: AVESAID_STATUS
+	sensor_status_s sensor_status{}; //AvesAID: Sensor status for arm/vehicle type
+	avesaid_status_s avesaid_status{}; //AvesAID: Attachment control flags
 	uint8_t _prev_arm_type{0}; //AvesAID: Track arm type changes for auto tuning
 
 	bool _prev_partial_attachment = false; //AvesAID: AVESAID_STATUS

@@ -130,7 +130,7 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 		if (continuing_conditions_passing) {
 			if (_vehicle_status_sub.get().nav_state == vehicle_status_s::NAVIGATION_STATE_ALTCTL){
 
-				log_info_ev("PAUSING SLAM FUSION IN ALTCTL");
+				log_info_ev("AvesAID: PAUSING SLAM FUSION IN ALTCTL");
 				avesaid_status.flag_height_source_slam_enabled = false; // AvesAID: AvesAID_status
 				// _height_sensor_ref = HeightSensor::BARO;  // Ensure BARO is set in ALTCTL
 			} else {
@@ -161,14 +161,14 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 				} else if (quality_sufficient) {
 					fuseVerticalPosition(aid_src);
 					// _height_sensor_ref == HeightSensor::EV; // AvesAID: updating the height reference
-					log_info_ev("FUSE SLAM"); // AvesAID: updating the height reference
+					log_info_ev("AvesAID: FUSE SLAM"); // AvesAID: updating the height reference
 
 					avesaid_status.flag_height_source_slam_enabled = true; // AvesAID: AvesAID_status
 
 				} else {
 					aid_src.innovation_rejected = true;
 					avesaid_status.flag_height_source_slam_enabled = false; // AvesAID: AvesAID_status
-					log_info_ev("NOT FUSE SLAM"); // AvesAID: updating the height reference
+					log_info_ev("AvesAID: NOT FUSE SLAM"); // AvesAID: updating the height reference
 
 				}
 
@@ -204,7 +204,7 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 		if (starting_conditions_passing) {
 
 			// if (_vehicle_status_sub.get().nav_state != vehicle_status_s::NAVIGATION_STATE_ALTCTL){
-				log_info_ev("START SLAM"); // AvesAID: updating the height reference
+				log_info_ev("AvesAID: START SLAM"); // AvesAID: updating the height reference
 				// activate fusion, only reset if necessary
 				if (_params.height_sensor_ref == static_cast<int32_t>(HeightSensor::EV)) {
 					ECL_INFO("starting %s fusion, resetting state", AID_SRC_NAME);
@@ -244,7 +244,7 @@ void Ekf::stopEvHgtFusion()
 		if (_height_sensor_ref == HeightSensor::EV) {
 			_height_sensor_ref = HeightSensor::UNKNOWN;
 		}
-		log_info_ev("STOP SLAM"); // AvesAID: updating the height reference
+		log_info_ev("AvesAID: STOP SLAM"); // AvesAID: updating the height reference
 		_ev_hgt_b_est.setFusionInactive();
 
 		_control_status.flags.ev_hgt = false;

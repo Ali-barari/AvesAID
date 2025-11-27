@@ -49,7 +49,8 @@
 #include <uORB/topics/autotune_attitude_control_status.h>
 #include <uORB/topics/vehicle_attitude.h>
 #include <uORB/topics/vehicle_attitude_setpoint.h>
-#include <uORB/topics/avesaid_status.h> // AvesAID: Auto tune switching based on arm_type
+#include <uORB/topics/sensor_status.h> // AvesAID: Auto tune switching based on arm_type
+#include <uORB/topics/avesaid_status.h> // AvesAID: Attachment control flags
 #include <lib/systemlib/mavlink_log.h> //AvesAID: Attachment control
 #include <uORB/topics/vehicle_control_mode.h>
 #include <uORB/topics/vehicle_land_detected.h>
@@ -106,7 +107,8 @@ private:
 	uORB::Subscription _autotune_attitude_control_status_sub{ORB_ID(autotune_attitude_control_status)};
 	uORB::Subscription _manual_control_setpoint_sub{ORB_ID(manual_control_setpoint)};
 	uORB::Subscription _vehicle_attitude_setpoint_sub{ORB_ID(vehicle_attitude_setpoint)};
-	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; //AvesAID: Auto tune switching based on arm_type
+	uORB::Subscription _sensor_status_sub{ORB_ID(sensor_status)}; //AvesAID: Auto tune switching based on arm_type
+	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; //AvesAID: Attachment control flags
 	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)};
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
 	uORB::Subscription _vehicle_local_position_sub{ORB_ID(vehicle_local_position)};
@@ -144,7 +146,7 @@ private:
 	bool _vtol_tailsitter{false};
 	bool _vtol_in_transition_mode{false};
 
-	avesaid_status_s avesaid_status{}; //AvesAID: AVESAID_STATUS
+	sensor_status_s sensor_status{}; //AvesAID: Sensor status for arm/vehicle type
 	uint8_t _prev_arm_type{0}; //AvesAID: Track arm type changes for auto tuning
 
 	uint8_t _quat_reset_counter{0};

@@ -84,14 +84,14 @@ MulticopterRateControl::parameters_updated(bool log_avesaid_change)
 	Vector3f rate_D;
 	Vector3f prev_rate_i;
 
-	if (avesaid_status.arm_type == 4 || avesaid_status.arm_type == 3	) { // Secondary payload (avesaid_status_s::Secondary)
+	if (sensor_status.arm_type == 4 || sensor_status.arm_type == 3	) { // Secondary payload (LONG_ARM=4, SURFACE_PREP=3)
 		// Load alternate tuning parameters optimized for Secondary
 		rate_p = Vector3f(_param_mc_rollrate_p2.get(), _param_mc_pitchrate_p2.get(), _param_mc_yawrate_p2.get());
 		rate_i = Vector3f(_param_mc_rollrate_i2.get(), _param_mc_pitchrate_i2.get(), _param_mc_yawrate_i2.get());
 		rate_D = Vector3f(_param_mc_rollrate_d2.get(), _param_mc_pitchrate_d2.get(), _param_mc_yawrate_d2.get());
 
 		if (log_avesaid_change) {
-			mavlink_log_info(&_mavlink_log_pub, "Auto Flight Tune: Secondary rate parameters applied\t");
+			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Flight Tune: Secondary rate\t");
 		}
 	} else {
 		// Switching away from Secondary: restore primary tuning
@@ -100,7 +100,7 @@ MulticopterRateControl::parameters_updated(bool log_avesaid_change)
 		rate_D = Vector3f(_param_mc_rollrate_d.get(), _param_mc_pitchrate_d.get(), _param_mc_yawrate_d.get());
 
 		if (log_avesaid_change) {
-			mavlink_log_info(&_mavlink_log_pub, "Auto Flight Tune: Primary rate parameters applied\t");
+			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Flight Tune: Primary rate\t");
 		}
 	}
 
@@ -109,12 +109,12 @@ MulticopterRateControl::parameters_updated(bool log_avesaid_change)
 	if (avesaid_status.flag_mode_partial_attachment_enabled || avesaid_status.flag_mode_attachment_enabled) {
 		rate_i = Vector3f(0.0f, 0.0f, 0.0f);
 		if (log_avesaid_change) {
-			mavlink_log_info(&_mavlink_log_pub, "Full/Partially-Attached: Zero rate Integral\t");
+			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Full/Partially-Attached: Zero rate Integral\t");
 		}
 	} else {
 		rate_i = prev_rate_i;
 		if (log_avesaid_change) {
-			mavlink_log_info(&_mavlink_log_pub, "Detached: Normal rate Integral\t");
+			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Detached: Normal rate Integral\t");
 		}
 	}
 	// AvesAID: set PID gains
@@ -206,14 +206,15 @@ MulticopterRateControl::Run()
 		/* check for updates in other topics */
 		_vehicle_control_mode_sub.update(&_vehicle_control_mode);
 		// _attachment_control_sub.update(&attachment_control); // AvesAID: Attachment control
-		_avesaid_status_sub.update(&avesaid_status); // AvesAID: AVESAID_STATUS
+		_sensor_status_sub.update(&sensor_status); // AvesAID: Sensor status for arm/vehicle type
+		_avesaid_status_sub.update(&avesaid_status); // AvesAID: Attachment control flags
 
-		// AVESAID_STATUS: Check for attachment state change
+		// Check for sensor or attachment state change
 		if ((avesaid_status.flag_mode_partial_attachment_enabled != _prev_partial_attachment) ||
-			(avesaid_status.flag_mode_attachment_enabled != _prev_attachment) || avesaid_status.arm_type != _prev_arm_type) {
+			(avesaid_status.flag_mode_attachment_enabled != _prev_attachment) || sensor_status.arm_type != _prev_arm_type) {
 
 			parameters_updated(true); // Update parameters when attachment state changes, with logging
-			_prev_arm_type = avesaid_status.arm_type;
+			_prev_arm_type = sensor_status.arm_type;
 
 			_prev_partial_attachment = avesaid_status.flag_mode_partial_attachment_enabled;
 

@@ -210,6 +210,7 @@ set(msg_files
 	SensorOpticalFlow.msg
 	SensorPreflightMag.msg
 	SensorSelection.msg
+	SensorStatus.msg # AvesAID: Sensor status from external system (arm/vehicle type)
 	SensorsStatus.msg
 	SensorsStatusImu.msg
 	SensorUwb.msg

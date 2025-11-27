@@ -858,28 +858,23 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 void
 MavlinkReceiver::handle_message_sensor_status(mavlink_message_t *msg)
 {
-	// AvesAID: Receive Sensor_Status message (ID 3333) to get current arm_type and vehicle_type
-	// This enables automatic flight tuning parameter switching based on payload type
+	// AvesAID: Receive Sensor_Status message (ID 3333) from system 51, component 192
+	// This message contains arm_type and vehicle_type which are used to switch PID tuning parameters
 	mavlink_sensor_status_t sensor_status_msg;
 	mavlink_msg_sensor_status_decode(msg, &sensor_status_msg);
 
-	// Update member avesaid_status with current arm and vehicle type
-	avesaid_status.timestamp = hrt_absolute_time();
-	avesaid_status.arm_type = sensor_status_msg.arm; // ARM enum: 0=UNKNOWN, 1=SPARM, 2=DELTA_ARM, 3=SURFACE_PREP, 4=LONG_ARM, 5=GIMBAL, 6=DEPLOYMENT
-	avesaid_status.vehicle_type = sensor_status_msg.vehicle; // VEHICLE enum: 0=UNKNOWN, 1=SN, 2=SB, 3=UT_CL, 4=EMAT_CL, 5=PA_CL
+	// Only process messages from system 51, component 192
+	if (msg->sysid == 51 && msg->compid == 192) {
+		PX4_INFO("Received sensor_Status from sys:%d comp:%d - arm:%d vehicle:%d", 
+			msg->sysid, msg->compid, sensor_status_msg.arm, sensor_status_msg.vehicle);
 
-	// Preserve existing flags (don't overwrite them)
-	avesaid_status_s current_status;
-	if (_avesaid_status_sub.copy(&current_status)) {
-		avesaid_status.flag_mode_attachment_enabled = current_status.flag_mode_attachment_enabled;
-		avesaid_status.flag_mode_partial_attachment_enabled = current_status.flag_mode_partial_attachment_enabled;
-		avesaid_status.flag_magnet_enabled = current_status.flag_magnet_enabled;
-		avesaid_status.flag_height_source_baro_enabled = current_status.flag_height_source_baro_enabled;
-		avesaid_status.flag_height_source_slam_enabled = current_status.flag_height_source_slam_enabled;
-		avesaid_status.flag_payload_enabled = current_status.flag_payload_enabled;
+		// Publish sensor_status uORB topic for attitude and rate controllers
+		sensor_status_s sensor_status{};
+		sensor_status.timestamp = hrt_absolute_time();
+		sensor_status.arm_type = sensor_status_msg.arm;
+		sensor_status.vehicle_type = sensor_status_msg.vehicle;
+		_sensor_status_pub.publish(sensor_status);
 	}
-
-	_avesaid_status_pub.publish(avesaid_status);
 }
 
 uint8_t MavlinkReceiver::handle_request_message_command(uint16_t message_id, float param2, float param3, float param4,
