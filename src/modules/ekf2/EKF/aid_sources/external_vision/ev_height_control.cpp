@@ -155,7 +155,11 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 					} else {
 						// EV has reset, but quality isn't sufficient
 						// we have no choice but to stop EV and try to resume once quality is acceptable
+						// stopEvHgtFusion();
+						log_info_ev("AvesAID: SLAM Quality Insufficient - Stopping SLAM");
 						stopEvHgtFusion();
+						_control_status.flags.ev_pos = false;
+						_control_status.flags.ev_vel = false;
 						return;
 					}
 
@@ -187,16 +191,29 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 				} else if (is_fusion_failing) {
 					// A reset did not fix the issue but all the starting checks are not passing
 					// This could be a temporary issue, stop the fusion without declaring the sensor faulty
-					ECL_WARN("stopping %s, fusion failing", AID_SRC_NAME);
+					// ECL_WARN("stopping %s, fusion failing", AID_SRC_NAME);
+					// stopEvHgtFusion();
+					// AvesAID: EV height fusion failing - stop ALL EV fusion to switch to ALT mode
+					ECL_WARN("stopping %s, fusion failing - stopping all EV fusion", AID_SRC_NAME);
+					log_info_ev("AvesAID: SLAM Height Failed - Stopping SLAM");
 					stopEvHgtFusion();
+					_control_status.flags.ev_pos = false;
+					_control_status.flags.ev_vel = false;
 				}
 
 			}
 
 		} else {
 			// Stop fusion but do not declare it faulty
-			ECL_WARN("stopping %s fusion, continuing conditions failing", AID_SRC_NAME);
+			// AvesAID: EV height fusion is degrading - either starting conditions not met or continuing conditions failing.
+			// When SLAM height quality degrades, stop ALL EV fusion (height, position, velocity) to trigger ALT mode switch.
+			// This prevents the drone from remaining in POSITION mode with compromised vertical reference.
+			// The barometer backup will activate automatically through checkHeightSensorRefFallback() mechanism.
+			ECL_WARN("stopping %s fusion, continuing conditions failing - stopping all EV fusion", AID_SRC_NAME);
+			log_info_ev("AvesAID: SLAM Unhealthy - Stopping SLAM");
 			stopEvHgtFusion();
+			_control_status.flags.ev_pos = false;
+			_control_status.flags.ev_vel = false;
 		}
 
 
@@ -243,7 +260,13 @@ void Ekf::stopEvHgtFusion()
 	if (_control_status.flags.ev_hgt) {
 
 		if (_height_sensor_ref == HeightSensor::EV) {
+			// AvesAID: Set height reference to UNKNOWN to trigger checkHeightSensorRefFallback().
+			// This activates the barometer backup (when EKF2_BARO_CTRL=1) for continuous height estimation.
+			// The fallback mechanism automatically selects the next available height sensor based on priority.
 			_height_sensor_ref = HeightSensor::UNKNOWN;
+			// Trigger fallback mechanism to activate alternative height source
+			// This ensures continuous height estimation when SLAM stops
+			ECL_INFO("EV height stopped, fallback to alternate height source");
 		}
 		log_info_ev("AvesAID: STOP SLAM"); // AvesAID: updating the height reference
 		_ev_hgt_b_est.setFusionInactive();

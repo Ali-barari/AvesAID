@@ -139,7 +139,7 @@ void Ekf::controlBaroHeightFusion(const imuSample &imu_sample)
 		if (_control_status.flags.baro_hgt) {
 
 			if (continuing_conditions_passing) {
-				log_info_baro("AvesAID: BARO"); // AvesAID: updating the height reference
+				log_info_baro("AvesAID: BARO Active"); // AvesAID: updating the height reference
 				fuseVerticalPosition(aid_src);
 
 				avesaid_status.flag_height_source_baro_enabled = true; // AvesAID: AvesAID_status
