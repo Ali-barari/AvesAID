@@ -199,12 +199,12 @@ void MulticopterPositionControl::parameters_update(bool force, bool log_avesaid_
 		if (avesaid_status.flag_mode_partial_attachment_enabled || avesaid_status.flag_mode_attachment_enabled) {
 			velocity_i = Vector3f(0.0f, 0.0f, 0.0f);
 			if (log_avesaid_change) {
-				mavlink_log_info(&_mavlink_log_pub, "AvesAID: Full/Partially-Attached: Zero velocity Integral\t");
+				mavlink_log_info(&_mavlink_log_pub, "AvesAID: Full/Partial-Attached: Zero vel I\t");
 			}
 		} else {
 			velocity_i = Vector3f(_param_mpc_xy_vel_i_acc.get(), _param_mpc_xy_vel_i_acc.get(), _param_mpc_z_vel_i_acc.get());
 			if (log_avesaid_change) {
-				mavlink_log_info(&_mavlink_log_pub, "AvesAID: Detached: Normal velocity Integral\t");
+				mavlink_log_info(&_mavlink_log_pub, "AvesAID: Detached: Normal vel I\t");
 			}
 		}
 

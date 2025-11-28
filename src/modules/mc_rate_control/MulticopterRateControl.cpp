@@ -109,12 +109,12 @@ MulticopterRateControl::parameters_updated(bool log_avesaid_change)
 	if (avesaid_status.flag_mode_partial_attachment_enabled || avesaid_status.flag_mode_attachment_enabled) {
 		rate_i = Vector3f(0.0f, 0.0f, 0.0f);
 		if (log_avesaid_change) {
-			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Full/Partially-Attached: Zero rate Integral\t");
+			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Full/Partial-Attached: Zero rate I\t");
 		}
 	} else {
 		rate_i = prev_rate_i;
 		if (log_avesaid_change) {
-			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Detached: Normal rate Integral\t");
+			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Detached: Normal rate I\t");
 		}
 	}
 	// AvesAID: set PID gains

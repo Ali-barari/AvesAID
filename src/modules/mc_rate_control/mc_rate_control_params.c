@@ -350,7 +350,7 @@ PARAM_DEFINE_FLOAT(MC_ROLLRATE_D2, 0.004f); // AvesAID: LongArm tune
  * @increment 0.01
  * @group Multicopter Rate Control
  */
-PARAM_DEFINE_FLOAT(MC_PITCHRATE_P2, 0.300f); // AvesAID: LongArm tune
+PARAM_DEFINE_FLOAT(MC_PITCHRATE_P2, 0.400f); // AvesAID: LongArm tune
 
 /**
  * Alternate Pitch rate I gain (LONG_ARM payload)
@@ -407,7 +407,7 @@ PARAM_DEFINE_FLOAT(MC_YAWRATE_P2, 0.24f); // AvesAID: LongArm tune
  * @increment 0.01
  * @group Multicopter Rate Control
  */
-PARAM_DEFINE_FLOAT(MC_YAWRATE_I2, 0.226f); // AvesAID: LongArm tune
+PARAM_DEFINE_FLOAT(MC_YAWRATE_I2, 0.23f); // AvesAID: LongArm tune
 
 /**
  * Alternate Yaw rate D gain (LONG_ARM payload)
@@ -421,4 +421,4 @@ PARAM_DEFINE_FLOAT(MC_YAWRATE_I2, 0.226f); // AvesAID: LongArm tune
  * @increment 0.01
  * @group Multicopter Rate Control
  */
-PARAM_DEFINE_FLOAT(MC_YAWRATE_D2, 0.012f); // AvesAID: LongArm tune
+PARAM_DEFINE_FLOAT(MC_YAWRATE_D2, 0.01f); // AvesAID: LongArm tune
