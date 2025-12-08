@@ -865,8 +865,8 @@ MavlinkReceiver::handle_message_sensor_status(mavlink_message_t *msg)
 
 	// Only process messages from system 51, component 192
 	if (msg->sysid == 51 && msg->compid == 192) {
-		PX4_INFO("Received sensor_Status from sys:%d comp:%d - arm:%d vehicle:%d", 
-			msg->sysid, msg->compid, sensor_status_msg.arm, sensor_status_msg.vehicle);
+		// PX4_INFO("Received sensor_Status from sys:%d comp:%d - arm:%d vehicle:%d",
+		// 	msg->sysid, msg->compid, sensor_status_msg.arm, sensor_status_msg.vehicle);
 
 		// Publish sensor_status uORB topic for attitude and rate controllers
 		sensor_status_s sensor_status{};
