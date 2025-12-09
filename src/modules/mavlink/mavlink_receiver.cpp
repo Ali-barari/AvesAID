@@ -60,6 +60,7 @@
 #include "mavlink_command_sender.h"
 #include "mavlink_main.h"
 #include "mavlink_receiver.h"
+#include "mavlink_parameters.h" // AvesAID: For serial unlock
 
 #include <lib/drivers/device/Device.hpp> // For DeviceId union
 
@@ -630,6 +631,12 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 			result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_DENIED;
 			send_ack = true;
 		}
+
+	// AvesAID: Secret unlock mechanism - MAV_CMD_PREFLIGHT_STORAGE with param1=3 unlocks serial for 60s
+	} else if (cmd_mavlink.command == MAV_CMD_PREFLIGHT_STORAGE && (int)roundf(cmd_mavlink.param1) == 3) {
+		MavlinkParametersManager::unlock_serial_modification(60000); // 60 seconds
+		result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
+		send_ack = true;
 
 	} else if(cmd_mavlink.command == MAV_CMD_MAGNET){ // AvesAID: Magnets: handle command
 

@@ -46,6 +46,9 @@
 #include "mavlink_main.h"
 #include <lib/systemlib/mavlink_log.h>
 
+// AvesAID: Static variable for serial number unlock mechanism
+hrt_abstime MavlinkParametersManager::_serial_unlock_expiry = 0;
+
 MavlinkParametersManager::MavlinkParametersManager(Mavlink &mavlink) :
 	_mavlink(mavlink)
 {
@@ -131,9 +134,10 @@ MavlinkParametersManager::handle_message(const mavlink_message_t *msg)
 
 				} else {
 					// AvesAID: Platform serial number write-once protection - START
-					// AvesAID: Simple write-once protection for platform parameters
+					// AvesAID: Write-once protection for platform serial number parameters
 					// AvesAID: Format: XX#####Y (2 letters + 5 digits + 1 letter, e.g., CU54543B)
 					// AvesAID: Three-parameter storage: SYS_PLAT_TYPE (XX) + SYS_PLAT_SN (#####) + SYS_PLAT_SUFFIX (Y)
+					// AvesAID: Protection unlocks for 60 seconds after receiving MAV_CMD_PREFLIGHT_STORAGE with param1=3
 					if (strcmp(name, "SYS_PLAT_TYPE") == 0 || strcmp(name, "SYS_PLAT_SN") == 0 || strcmp(name, "SYS_PLAT_SUFFIX") == 0) {
 						// AvesAID: Check if parameters are already set (write-once protection)
 						int32_t platform_type, platform_sn, platform_suffix;
@@ -141,25 +145,26 @@ MavlinkParametersManager::handle_message(const mavlink_message_t *msg)
 						param_get(param_find("SYS_PLAT_SN"), &platform_sn);
 						param_get(param_find("SYS_PLAT_SUFFIX"), &platform_suffix);
 
-						// AvesAID: If ALL parameters are already set to non-zero values, block modification
+						// AvesAID: If ALL parameters are already set to non-zero values, check unlock status
 						if (platform_type != 0 && platform_sn != 0 && platform_suffix != 0) {
-							// AvesAID: Decode and display current serial number if valid
-							if (platform_type > 256 && platform_sn >= 0 && platform_suffix > 0) {
-								char type_char1 = (platform_type >> 8) & 0xFF;
-								char type_char2 = platform_type & 0xFF;
-								char suffix_char = (char)platform_suffix;
+							// AvesAID: Check if modification is unlocked (via special command)
+							if (!is_serial_unlocked()) {
+								// AvesAID: Decode and display current serial number if valid
+								if (platform_type > 256 && platform_sn >= 0 && platform_suffix > 0) {
+									char type_char1 = (platform_type >> 8) & 0xFF;
+									char type_char2 = platform_type & 0xFF;
+									char suffix_char = (char)platform_suffix;
 
-								PX4_WARN("Platform serial already set to %c%c%05d%c. Cannot modify.",
-									type_char1, type_char2, (int)platform_sn, suffix_char);
-							} else {
-								PX4_WARN("Platform serial parameters already set. Cannot modify.");
+									PX4_WARN("Platform serial already set to %c%c%05d%c. Locked.",
+										type_char1, type_char2, (int)platform_sn, suffix_char);
+								} else {
+									PX4_WARN("Platform serial parameters already set. Locked.");
+								}
+
+								send_param(param); // Send current value back
+								break;
 							}
-
-							send_param(param); // Send current value back
-							break;
 						}
-
-						PX4_INFO("Setting platform parameter %s", name);
 					}
 					// AvesAID: Platform serial number write-once protection - END
 
@@ -699,3 +704,16 @@ void MavlinkParametersManager::dequeue_uavcan_request()
 }
 
 #endif // CONFIG_MAVLINK_UAVCAN_PARAMETERS
+
+// AvesAID: Unlock serial modification for 60 seconds (called when special command received)
+void MavlinkParametersManager::unlock_serial_modification(uint32_t duration_ms)
+{
+	_serial_unlock_expiry = hrt_absolute_time() + (duration_ms * 1000); // Convert ms to us
+}
+
+// AvesAID: Check if serial modification is currently unlocked
+bool MavlinkParametersManager::is_serial_unlocked()
+{
+	hrt_abstime now = hrt_absolute_time();
+	return (now < _serial_unlock_expiry);
+}

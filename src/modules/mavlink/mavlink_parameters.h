@@ -162,4 +162,13 @@ protected:
 	Mavlink &_mavlink;
 
 	bool _first_send{false};
+
+	// AvesAID: Platform serial number unlock mechanism
+	static hrt_abstime _serial_unlock_expiry;
+
+public:
+	// AvesAID: Method to unlock serial number modification temporarily
+	static void unlock_serial_modification(uint32_t duration_ms = 60000);
+	// AvesAID: Check if serial modification is currently unlocked
+	static bool is_serial_unlocked();
 };
