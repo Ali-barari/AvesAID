@@ -37,6 +37,7 @@
 #include "logged_topics.h"
 #include "messages.h"
 #include "watchdog.h"
+#include "flight_time_tracker.h"  // AvesAID: Flight time tracking
 #include <containers/Array.hpp>
 #include "util.h"
 #include <px4_platform_common/defines.h>
@@ -390,6 +391,9 @@ private:
 	uORB::Subscription				_vehicle_status_sub{ORB_ID(vehicle_status)};
 	uORB::SubscriptionInterval			_log_message_sub{ORB_ID(log_message), 20};
 	uORB::SubscriptionInterval			_parameter_update_sub{ORB_ID(parameter_update), 1_s};
+
+	// AvesAID: Flight time tracker
+	FlightTimeTracker				_flight_time_tracker;
 
 	DEFINE_PARAMETERS(
 		(ParamInt<px4::params::SDLOG_UTC_OFFSET>) _param_sdlog_utc_offset,

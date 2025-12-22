@@ -340,3 +340,20 @@ PARAM_DEFINE_INT32(SYS_PLAT_SN, 0);
 PARAM_DEFINE_INT32(SYS_PLAT_SUFFIX, 0);
 
 // AvesAID: Platform serial number parameters - END
+
+// AvesAID: Total flight time tracking - START
+/**
+ * Total flight time
+ *
+ * Accumulated flight time in seconds (time spent in-air).
+ * Automatically tracked and persisted by the logger module.
+ * WARNING: This parameter is auto-managed and monotonic. Manual modifications
+ * (including attempts to reset to 0) are ignored/overwritten.
+ *
+ * @group System
+ * @min 0
+ * @unit s
+ * @reboot_required false
+ */
+PARAM_DEFINE_INT32(SYS_TOT_FLT_TIME, 0);
+// AvesAID: Total flight time tracking - END

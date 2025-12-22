@@ -47,6 +47,7 @@ px4_add_module(
 		log_writer_mavlink.cpp
 		util.cpp
 		watchdog.cpp
+		flight_time_tracker.cpp  # AvesAID: Flight time tracking
 	DEPENDS
 		version
 		component_general_json # for checksums.h

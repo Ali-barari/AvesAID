@@ -406,6 +406,9 @@ Logger::Logger(LogWriter::Backend backend, size_t buffer_size, uint32_t log_inte
 			PX4_ERR("Failed to find topic %s", poll_topic_name);
 		}
 	}
+
+	// AvesAID: Initialize flight time tracker
+	_flight_time_tracker.init();
 }
 
 Logger::~Logger()
@@ -746,15 +749,22 @@ void Logger::run()
 				}
 			}
 
-			/* wait for lock on log buffer */
+			// AvesAID: Update flight time tracker
+			_flight_time_tracker.update();
+
+			const bool try_to_subscribe = next_subscribe_topic_index != -1;
+
+			/* get the log buffer to fill with messages */
 			_writer.lock();
 
 			for (int sub_idx = 0; sub_idx < _num_subscriptions; ++sub_idx) {
 				LoggerSubscription &sub = _subscriptions[sub_idx];
-				/* if this topic has been updated, copy the new data into the message buffer
-				 * and write a message to the log
-				 */
-				const bool try_to_subscribe = (sub_idx == next_subscribe_topic_index);
+
+				if (try_to_subscribe && next_subscribe_topic_index == sub_idx) {
+					if (!sub.valid()) {
+						sub.subscribe();
+					}
+				}
 
 				if (copy_if_updated(sub_idx, _msg_buffer + sizeof(ulog_message_data_s), try_to_subscribe)) {
 					// each message consists of a header followed by an orb data object
