@@ -30,6 +30,25 @@ else
 	param set-default MAV_2_UDP_PRT 14550
 fi
 
+# AvesAID: Configure static network IP if not already set
+# Check if network config exists in persistent storage
+if ! netman show -i eth0 > /dev/null 2>&1
+then
+	# No config exists, create default static IP configuration
+	if [ -d /fs/microsd ]
+	then
+		echo "DEVICE=eth0" > /fs/microsd/net.cfg
+		echo "BOOTPROTO=static" >> /fs/microsd/net.cfg
+		echo "IPADDR=192.168.144.33" >> /fs/microsd/net.cfg
+		echo "NETMASK=255.255.255.0" >> /fs/microsd/net.cfg
+		echo "ROUTER=192.168.144.1" >> /fs/microsd/net.cfg
+		echo "DNS=192.168.144.1" >> /fs/microsd/net.cfg
+
+		# Apply the configuration (this will reboot)
+		netman update -i eth0
+	fi
+fi
+
 safety_button start
 
 # GPIO Expander driver on external I2C3
