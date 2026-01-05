@@ -196,15 +196,32 @@ void MulticopterPositionControl::parameters_update(bool force, bool log_avesaid_
 		_control.setPositionGains(Vector3f(_param_mpc_xy_p.get(), _param_mpc_xy_p.get(), _param_mpc_z_p.get()));
 		//AvesAID: Reset integrals when attachment flags are enabled
 		Vector3f velocity_i;
-		if (avesaid_status.flag_mode_partial_attachment_enabled || avesaid_status.flag_mode_attachment_enabled) {
+		if (avesaid_status.flag_mode_attachment_enabled) {
 			velocity_i = Vector3f(0.0f, 0.0f, 0.0f);
 			if (log_avesaid_change) {
-				mavlink_log_info(&_mavlink_log_pub, "AvesAID: Full/Partial-Attached: Zero vel I\t");
+				// AvesAID: log and event for full attachment mode - zero velocity integrator
+				mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Position Controller: Full attached: Zero I vel\t");
+				// AvesAID: event id=mc_pos_ctrl_zero_i_vel_full
+				events::send(events::ID("mc_pos_ctrl_zero_i_vel_full"), events::Log::Notice,
+					"AvesAID: Position Controller: Full attached: Zero I vel");
+			}
+		} else if (avesaid_status.flag_mode_partial_attachment_enabled) {
+			velocity_i = Vector3f(0.0f, 0.0f, 0.0f);
+			if (log_avesaid_change) {
+				// AvesAID: log and event for partial attachment mode - zero velocity integrator
+				mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Position Controller: Partial attached: Zero I vel\t");
+				// AvesAID: event id=mc_pos_ctrl_zero_i_vel_partial
+				events::send(events::ID("mc_pos_ctrl_zero_i_vel_partial"), events::Log::Notice,
+					"AvesAID: Position Controller: Partial attached: Zero I vel");
 			}
 		} else {
 			velocity_i = Vector3f(_param_mpc_xy_vel_i_acc.get(), _param_mpc_xy_vel_i_acc.get(), _param_mpc_z_vel_i_acc.get());
 			if (log_avesaid_change) {
-				mavlink_log_info(&_mavlink_log_pub, "AvesAID: Detached: Normal vel I\t");
+				// AvesAID: log and event for detached mode - restore velocity integrator
+				mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Position Controller: Detached\t");
+				// AvesAID: event id=mc_pos_ctrl_normal_i_vel
+				events::send(events::ID("mc_pos_ctrl_normal_i_vel"), events::Log::Notice,
+					"AvesAID: Position Controller: Detached: Normal I vel");
 			}
 		}
 

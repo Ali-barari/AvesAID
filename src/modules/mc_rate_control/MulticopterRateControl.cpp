@@ -91,7 +91,11 @@ MulticopterRateControl::parameters_updated(bool log_avesaid_change)
 		rate_D = Vector3f(_param_mc_rollrate_d2.get(), _param_mc_pitchrate_d2.get(), _param_mc_yawrate_d2.get());
 
 		if (log_avesaid_change) {
-			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Flight Tune: Secondary rate\t");
+			// AvesAID: log and event for switching to Secondary flight tuning
+			mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Rate Controller: Secondary rate tuning\t");
+			// AvesAID: event id=mc_rate_control_flight_tune_secondary_rate
+			events::send(events::ID("mc_rate_control_flight_tune_secondary_rate"), events::Log::Notice,
+				"AvesAID: Rate Controller: Secondary rate tuning");
 		}
 	} else {
 		// Switching away from Secondary: restore primary tuning
@@ -100,21 +104,42 @@ MulticopterRateControl::parameters_updated(bool log_avesaid_change)
 		rate_D = Vector3f(_param_mc_rollrate_d.get(), _param_mc_pitchrate_d.get(), _param_mc_yawrate_d.get());
 
 		if (log_avesaid_change) {
-			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Flight Tune: Primary rate\t");
+			// AvesAID: log and event for switching to Primary flight tuning
+			mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Rate Controller: Primary rate tuning\t");
+			// AvesAID: event id=mc_rate_control_flight_tune_primary_rate
+			events::send(events::ID("mc_rate_control_flight_tune_primary_rate"), events::Log::Notice,
+				"AvesAID: Rate Controller: Primary rate tuning");
 		}
 	}
 
 	// AvesAID: AVESAID_STATUS Reset integrals when attachment flags are enabled
 	prev_rate_i = rate_i;
-	if (avesaid_status.flag_mode_partial_attachment_enabled || avesaid_status.flag_mode_attachment_enabled) {
+	if (avesaid_status.flag_mode_attachment_enabled) {
 		rate_i = Vector3f(0.0f, 0.0f, 0.0f);
 		if (log_avesaid_change) {
-			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Full/Partial-Attached: Zero rate I\t");
+			// AvesAID: log and event for full attachment mode - zero integrator
+			mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Rate Controller: Full attached: Zero I rate\t");
+			// AvesAID: event id=mc_rate_control_zero_rate_i_full
+			events::send(events::ID("mc_rate_control_zero_rate_i_full"), events::Log::Notice,
+				"AvesAID: Rate Controller: Full attached: Zero I rate");
+		}
+	} else if (avesaid_status.flag_mode_partial_attachment_enabled) {
+		rate_i = Vector3f(0.0f, 0.0f, 0.0f);
+		if (log_avesaid_change) {
+			// AvesAID: log and event for partial attachment mode - zero integrator
+			mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Rate Controller: Partial attached: Zero I rate\t");
+			// AvesAID: event id=mc_rate_control_zero_rate_i_partial
+			events::send(events::ID("mc_rate_control_zero_rate_i_partial"), events::Log::Notice,
+				"AvesAID: Rate Controller: Partial attached: Zero I rate");
 		}
 	} else {
 		rate_i = prev_rate_i;
 		if (log_avesaid_change) {
-			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Detached: Normal rate I\t");
+			// AvesAID: log and event for detached mode - restore integrator
+			mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Rate Controller: Detached\t");
+			// AvesAID: event id=mc_rate_control_normal_rate_i
+			events::send(events::ID("mc_rate_control_normal_rate_i"), events::Log::Notice,
+				"AvesAID: Rate Controller: Detached: Normal I rate");
 		}
 	}
 	// AvesAID: set PID gains

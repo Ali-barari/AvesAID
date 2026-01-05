@@ -86,6 +86,19 @@ __EXPORT void mavlink_vasprintf(int severity, orb_advert_t *mavlink_log_pub, con
 	} while(0);
 
 /**
+ * Send a mavlink notice message (also printed to console).
+ *
+ * @param _pub		Pointer to the uORB advert;
+ * @param _text	The text to log;
+ */
+#define mavlink_log_notice(_pub, _text, ...)\
+/* AvesAID: added mavlink notice wrapper to emit NOTICE priority MAVLink messages */\
+	do { \
+		mavlink_vasprintf(_MSG_PRIO_NOTICE, _pub, _text, ##__VA_ARGS__); \
+		PX4_INFO(_text, ##__VA_ARGS__); \
+	} while(0);
+
+/**
  * Send a mavlink warning message and print to console.
  *
  * @param _pub		Pointer to the uORB advert;

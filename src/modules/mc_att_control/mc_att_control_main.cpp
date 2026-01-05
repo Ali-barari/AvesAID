@@ -48,6 +48,7 @@
 #include <drivers/drv_hrt.h>
 #include <mathlib/math/Limits.hpp>
 #include <mathlib/math/Functions.hpp>
+#include <px4_platform_common/events.h> //AvesAID: events
 
 #include "AttitudeControl/AttitudeControlMath.hpp"
 
@@ -92,12 +93,16 @@ MulticopterAttitudeControl::parameters_updated()
 	// AvesAID: Check arm_type and apply appropriate attitude P gains
 	if (sensor_status.arm_type == 4 || sensor_status.arm_type == 3) { // LONG_ARM payload
 		_attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p2.get(), _param_mc_pitch_p2.get(), _param_mc_yaw_p2.get()),
-					      _param_mc_yaw_weight.get());
-		mavlink_log_info(&_mavlink_log_pub, "AvesAID: Flight Tune: Secondary attitude\t");
+				      _param_mc_yaw_weight.get());
+		mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Attitude Controller: Secondary attitude tuning\t");
+		events::send(events::ID("mc_att_control_flight_tune_secondary_attitude"), events::Log::Notice,
+			"AvesAID: Attitude Controller: Secondary attitude tuning");
 	} else {
 		_attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p.get(), _param_mc_pitch_p.get(), _param_mc_yaw_p.get()),
-					      _param_mc_yaw_weight.get());
-		mavlink_log_info(&_mavlink_log_pub, "AvesAID: Flight Tune: Primary attitude\t");
+				      _param_mc_yaw_weight.get());
+		mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Attitude Controller: Primary attitude tuning\t");
+		events::send(events::ID("mc_att_control_flight_tune_primary_attitude"), events::Log::Notice,
+			"AvesAID: Attitude Controller: Primary attitude tuning");
 	}
 	// angular rate limits
 	using math::radians;
