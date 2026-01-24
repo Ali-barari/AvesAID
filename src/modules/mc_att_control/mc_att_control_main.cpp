@@ -94,15 +94,15 @@ MulticopterAttitudeControl::parameters_updated()
 	if (sensor_status.arm_type == 4 || sensor_status.arm_type == 3) { // LONG_ARM payload
 		_attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p2.get(), _param_mc_pitch_p2.get(), _param_mc_yaw_p2.get()),
 				      _param_mc_yaw_weight.get());
-		mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Attitude Controller: Secondary attitude tuning\t");
+		mavlink_log_info(&_mavlink_log_pub, "AvesAID: Attitude Controller: Secondary attitude\t");
 		events::send(events::ID("mc_att_control_flight_tune_secondary_attitude"), events::Log::Notice,
-			"AvesAID: Attitude Controller: Secondary attitude tuning");
+			"AvesAID: Attitude Controller: Secondary attitude");
 	} else {
 		_attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p.get(), _param_mc_pitch_p.get(), _param_mc_yaw_p.get()),
 				      _param_mc_yaw_weight.get());
-		mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Attitude Controller: Primary attitude tuning\t");
+		mavlink_log_info(&_mavlink_log_pub, "AvesAID: Attitude Controller: Primary attitude\t");
 		events::send(events::ID("mc_att_control_flight_tune_primary_attitude"), events::Log::Notice,
-			"AvesAID: Attitude Controller: Primary attitude tuning");
+			"AvesAID: Attitude Controller: Primary attitude");
 	}
 	// angular rate limits
 	using math::radians;

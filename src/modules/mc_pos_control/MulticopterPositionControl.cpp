@@ -200,19 +200,19 @@ void MulticopterPositionControl::parameters_update(bool force, bool log_avesaid_
 			velocity_i = Vector3f(0.0f, 0.0f, 0.0f);
 			if (log_avesaid_change) {
 				// AvesAID: log and event for full attachment mode - zero velocity integrator
-				mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Position Controller: Full attached: Zero I vel\t");
+				mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Position Controller: Full attached\t");
 				// AvesAID: event id=mc_pos_ctrl_zero_i_vel_full
 				events::send(events::ID("mc_pos_ctrl_zero_i_vel_full"), events::Log::Notice,
-					"AvesAID: Position Controller: Full attached: Zero I vel");
+					"AvesAID: Position Controller: Full attached");
 			}
 		} else if (avesaid_status.flag_mode_partial_attachment_enabled) {
 			velocity_i = Vector3f(0.0f, 0.0f, 0.0f);
 			if (log_avesaid_change) {
 				// AvesAID: log and event for partial attachment mode - zero velocity integrator
-				mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Position Controller: Partial attached: Zero I vel\t");
+				mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Position Controller: Partial attached\t");
 				// AvesAID: event id=mc_pos_ctrl_zero_i_vel_partial
 				events::send(events::ID("mc_pos_ctrl_zero_i_vel_partial"), events::Log::Notice,
-					"AvesAID: Position Controller: Partial attached: Zero I vel");
+					"AvesAID: Position Controller: Partial attached");
 			}
 		} else {
 			velocity_i = Vector3f(_param_mpc_xy_vel_i_acc.get(), _param_mpc_xy_vel_i_acc.get(), _param_mpc_z_vel_i_acc.get());
@@ -221,7 +221,7 @@ void MulticopterPositionControl::parameters_update(bool force, bool log_avesaid_
 				mavlink_log_notice(&_mavlink_log_pub, "AvesAID: Position Controller: Detached\t");
 				// AvesAID: event id=mc_pos_ctrl_normal_i_vel
 				events::send(events::ID("mc_pos_ctrl_normal_i_vel"), events::Log::Notice,
-					"AvesAID: Position Controller: Detached: Normal I vel");
+					"AvesAID: Position Controller: Detached");
 			}
 		}
 
