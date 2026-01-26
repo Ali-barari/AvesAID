@@ -36,6 +36,11 @@
  * Control functions for ekf external vision control
  */
 
+#ifndef MODULE_NAME
+#define MODULE_NAME "ev_control"
+#endif
+#include <px4_platform_common/events.h>
+
 #include "ekf.h"
 
 void Ekf::controlExternalVisionFusion(const imuSample &imu_sample)
@@ -84,7 +89,27 @@ void Ekf::controlExternalVisionFusion(const imuSample &imu_sample)
 
 		_ev_q_error_initialized = false;
 
-		ECL_WARN("vision data stopped");
+		// AvesAID: Force immediate failsafe when EV (SLAM) feed stops
+		//
+		// WORKFLOW:
+		// 1. These timestamps are checked in ekf_helper.cpp::updateHorizontalDeadReckoningstatus()
+		// 2. Setting them to 0 makes isRecent() checks fail immediately
+		// 3. This sets inertial_dead_reckoning = true (line 858 ekf_helper.cpp)
+		// 4. Also triggers _horizontal_deadreckon_time_exceeded = true (line 859 ekf_helper.cpp)
+		// 5. Dead reckoning flags are published to Commander via vehicle_local_position.dead_reckoning
+		// 6. estimatorCheck.cpp sets failsafe_flags.local_position_invalid = true
+		// 7. failsafe.cpp::modeCanRun(POSCTL) returns false (line 682 framework.cpp)
+		// 8. Failsafe triggered: POSITION mode → ALTITUDE mode (line 594-598 failsafe.cpp)
+		//
+		// Result: Immediate mode switch instead of waiting 5 seconds for deadreckoning timeout
+		_time_last_hor_pos_fuse = 0;        // Invalidate horizontal position fusion timestamp
+		_time_last_hor_vel_fuse = 0;        // Invalidate horizontal velocity fusion timestamp
+		_time_last_horizontal_aiding = 0;   // Trigger immediate deadreckon timeout (skips 5sec valid_timeout_max)
+
+		mavlink_log_critical(&_mavlink_log_pub, "AvesAID: External Vision data stopped - failsafe triggered\t");
+		// AvesAID: event id=ekf2_ev_data_stopped_failsafe
+		events::send(events::ID("ekf2_ev_data_stopped_failsafe"), events::Log::Critical,
+			"AvesAID: External Vision data stopped - failsafe triggered");
 	}
 }
 
