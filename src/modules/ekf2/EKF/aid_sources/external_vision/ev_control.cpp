@@ -88,6 +88,7 @@ void Ekf::controlExternalVisionFusion(const imuSample &imu_sample)
 		stopEvHgtFusion();
 
 		_ev_q_error_initialized = false;
+		_ev_sample_prev.time_us = 0;  // Prevent timeout from retriggering on next cycle
 
 		// AvesAID: Force immediate failsafe when EV (SLAM) feed stops
 		//
