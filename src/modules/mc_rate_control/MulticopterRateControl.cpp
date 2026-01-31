@@ -94,7 +94,7 @@ MulticopterRateControl::parameters_updated(bool log_avesaid_change)
 			// AvesAID: log and event for switching to Secondary flight tuning
 			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Rate Controller: Secondary rate\t");
 			// AvesAID: event id=mc_rate_control_flight_tune_secondary_rate
-			events::send(events::ID("mc_rate_control_flight_tune_secondary_rate"), events::Log::Notice,
+			events::send(events::ID("mc_rate_control_flight_tune_secondary_rate"), events::Log::Info,
 				"AvesAID: Rate Controller: Secondary rate");
 		}
 	} else {
@@ -107,7 +107,7 @@ MulticopterRateControl::parameters_updated(bool log_avesaid_change)
 			// AvesAID: log and event for switching to Primary flight tuning
 			mavlink_log_info(&_mavlink_log_pub, "AvesAID: Rate Controller: Primary rate\t");
 			// AvesAID: event id=mc_rate_control_flight_tune_primary_rate
-			events::send(events::ID("mc_rate_control_flight_tune_primary_rate"), events::Log::Notice,
+			events::send(events::ID("mc_rate_control_flight_tune_primary_rate"), events::Log::Info,
 				"AvesAID: Rate Controller: Primary rate");
 		}
 	}

@@ -51,6 +51,9 @@ void Ekf::controlExternalVisionFusion(const imuSample &imu_sample)
 	// Check for new external vision data
 	extVisionSample ev_sample;
 
+	// AvesAID: Track EV fusion state for START/STOP logging
+	static bool ev_was_active = false;
+
 	if (_ext_vision_buffer && _ext_vision_buffer->pop_first_older_than(imu_sample.time_us, &ev_sample)) {
 
 		bool ev_reset = (ev_sample.reset_counter != _ev_sample_prev.reset_counter);
@@ -65,6 +68,13 @@ void Ekf::controlExternalVisionFusion(const imuSample &imu_sample)
 				&& ((_params.ev_quality_minimum <= 0)
 				    || (_ext_vision_buffer->get_newest().quality >= _params.ev_quality_minimum)) // newest quality sufficient
 				&& isNewestSampleRecent(_time_last_ext_vision_buffer_push, EV_MAX_INTERVAL);
+
+		// AvesAID: Log when SLAM fusion starts
+		if (starting_conditions_passing && !ev_was_active) {
+			events::send(events::ID("ekf2_ev_slam_started"), events::Log::Info,
+				"AvesAID: External Vision Fusion Started");
+			ev_was_active = true;
+		}
 
 		updateEvAttitudeErrorFilter(ev_sample, ev_reset);
 		controlEvYawFusion(imu_sample, ev_sample, starting_conditions_passing, ev_reset, quality_sufficient, _aid_src_ev_yaw);
@@ -88,7 +98,7 @@ void Ekf::controlExternalVisionFusion(const imuSample &imu_sample)
 		stopEvHgtFusion();
 
 		_ev_q_error_initialized = false;
-		_ev_sample_prev.time_us = 0;  // Prevent timeout from retriggering on next cycle
+		ev_was_active = false;  // AvesAID: Reset for next External Vision session
 
 		// AvesAID: Force immediate failsafe when EV (SLAM) feed stops
 		//
@@ -107,10 +117,9 @@ void Ekf::controlExternalVisionFusion(const imuSample &imu_sample)
 		_time_last_hor_vel_fuse = 0;        // Invalidate horizontal velocity fusion timestamp
 		_time_last_horizontal_aiding = 0;   // Trigger immediate deadreckon timeout (skips 5sec valid_timeout_max)
 
-		mavlink_log_critical(&_mavlink_log_pub, "AvesAID: External Vision data stopped - failsafe triggered\t");
 		// AvesAID: event id=ekf2_ev_data_stopped_failsafe
 		events::send(events::ID("ekf2_ev_data_stopped_failsafe"), events::Log::Critical,
-			"AvesAID: External Vision data stopped - failsafe triggered");
+			"AvesAID: External Vision data stopped - failsafe");
 	}
 }
 

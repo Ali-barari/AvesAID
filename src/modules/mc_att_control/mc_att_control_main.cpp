@@ -95,13 +95,13 @@ MulticopterAttitudeControl::parameters_updated()
 		_attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p2.get(), _param_mc_pitch_p2.get(), _param_mc_yaw_p2.get()),
 				      _param_mc_yaw_weight.get());
 		mavlink_log_info(&_mavlink_log_pub, "AvesAID: Attitude Controller: Secondary attitude\t");
-		events::send(events::ID("mc_att_control_flight_tune_secondary_attitude"), events::Log::Notice,
+		events::send(events::ID("mc_att_control_flight_tune_secondary_attitude"), events::Log::Info,
 			"AvesAID: Attitude Controller: Secondary attitude");
 	} else {
 		_attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p.get(), _param_mc_pitch_p.get(), _param_mc_yaw_p.get()),
 				      _param_mc_yaw_weight.get());
 		mavlink_log_info(&_mavlink_log_pub, "AvesAID: Attitude Controller: Primary attitude\t");
-		events::send(events::ID("mc_att_control_flight_tune_primary_attitude"), events::Log::Notice,
+		events::send(events::ID("mc_att_control_flight_tune_primary_attitude"), events::Log::Info,
 			"AvesAID: Attitude Controller: Primary attitude");
 	}
 	// angular rate limits

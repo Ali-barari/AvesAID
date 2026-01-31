@@ -131,11 +131,13 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 			if (_vehicle_status_sub.get().nav_state == vehicle_status_s::NAVIGATION_STATE_ALTCTL ||
 			    _vehicle_status_sub.get().nav_state == vehicle_status_s::NAVIGATION_STATE_STAB){
 
-				log_info_ev("AvesAID: PAUSING SLAM FUSION IN ALTCTL/STAB");
+				log_info_ev("AvesAID: Pausing External Vision height fusion");
 				avesaid_status.flag_height_source_slam_enabled = false; // AvesAID: AvesAID_status
 				// _height_sensor_ref = HeightSensor::BARO;  // Ensure BARO is set in ALTCTL/STAB
 			} else {
 
+				// AvesAID: Log resume message when switching back to position mode
+			log_info_ev("AvesAID: External Vision height fusion");
 				if (ev_reset) {
 
 					if (quality_sufficient) {
@@ -158,22 +160,21 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 						// stopEvHgtFusion();
 						log_info_ev("AvesAID: SLAM Quality Insufficient - Stopping SLAM");
 						stopEvHgtFusion();
-						_control_status.flags.ev_pos = false;
-						_control_status.flags.ev_vel = false;
+
 						return;
 					}
 
 				} else if (quality_sufficient) {
 					fuseVerticalPosition(aid_src);
 					// _height_sensor_ref == HeightSensor::EV; // AvesAID: updating the height reference
-					log_info_ev("AvesAID: FUSE SLAM"); // AvesAID: updating the height reference
+					// log_info_ev("AvesAID: FUSE SLAM"); // AvesAID: updating the height reference
 
 					avesaid_status.flag_height_source_slam_enabled = true; // AvesAID: AvesAID_status
 
 				} else {
 					aid_src.innovation_rejected = true;
 					avesaid_status.flag_height_source_slam_enabled = false; // AvesAID: AvesAID_status
-					log_info_ev("AvesAID: NOT FUSE SLAM"); // AvesAID: updating the height reference
+					// log_info_ev("AvesAID: NOT FUSE SLAM"); // AvesAID: updating the height reference
 
 				}
 
@@ -195,10 +196,9 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 					// stopEvHgtFusion();
 					// AvesAID: EV height fusion failing - stop ALL EV fusion to switch to ALT mode
 					ECL_WARN("stopping %s, fusion failing - stopping all EV fusion", AID_SRC_NAME);
-					log_info_ev("AvesAID: SLAM Height Failed - Stopping SLAM");
+					// log_info_ev("AvesAID: SLAM Height Failed - Stopping SLAM");
 					stopEvHgtFusion();
-					_control_status.flags.ev_pos = false;
-					_control_status.flags.ev_vel = false;
+
 				}
 
 			}
@@ -210,10 +210,9 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 			// This prevents the drone from remaining in POSITION mode with compromised vertical reference.
 			// The barometer backup will activate automatically through checkHeightSensorRefFallback() mechanism.
 			ECL_WARN("stopping %s fusion, continuing conditions failing - stopping all EV fusion", AID_SRC_NAME);
-			log_info_ev("AvesAID: SLAM Unhealthy - Stopping SLAM");
+			// log_info_ev("AvesAID: SLAM Unhealthy - Stopping SLAM");
 			stopEvHgtFusion();
-			_control_status.flags.ev_pos = false;
-			_control_status.flags.ev_vel = false;
+
 		}
 
 
@@ -222,7 +221,7 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 		if (starting_conditions_passing) {
 
 			// if (_vehicle_status_sub.get().nav_state != vehicle_status_s::NAVIGATION_STATE_ALTCTL){
-				log_info_ev("AvesAID: START SLAM"); // AvesAID: updating the height reference
+				// log_info_ev("AvesAID: START SLAM"); // AvesAID: updating the height reference
 				// activate fusion, only reset if necessary
 				if (_params.height_sensor_ref == static_cast<int32_t>(HeightSensor::EV)) {
 					ECL_INFO("starting %s fusion, resetting state", AID_SRC_NAME);
@@ -268,7 +267,7 @@ void Ekf::stopEvHgtFusion()
 			// This ensures continuous height estimation when SLAM stops
 			ECL_INFO("EV height stopped, fallback to alternate height source");
 		}
-		log_info_ev("AvesAID: STOP SLAM"); // AvesAID: updating the height reference
+		// log_info_ev("AvesAID: STOP SLAM"); // AvesAID: updating the height reference
 		_ev_hgt_b_est.setFusionInactive();
 
 		_control_status.flags.ev_hgt = false;
