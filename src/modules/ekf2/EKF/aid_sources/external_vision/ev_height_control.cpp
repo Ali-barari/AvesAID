@@ -41,7 +41,10 @@
 #ifndef MODULE_NAME
 #define MODULE_NAME "ev_height_control"
 #endif
+#include <px4_platform_common/events.h>
 
+// Static variables for tracking state changes
+static bool is_ev_height_paused = false;  // Track pause state for logging
 
 void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSample &ev_sample,
 				const bool common_starting_conditions_passing, const bool ev_reset, const bool quality_sufficient,
@@ -131,13 +134,24 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 			if (_vehicle_status_sub.get().nav_state == vehicle_status_s::NAVIGATION_STATE_ALTCTL ||
 			    _vehicle_status_sub.get().nav_state == vehicle_status_s::NAVIGATION_STATE_STAB){
 
-				log_info_ev("AvesAID: Pausing External Vision height fusion");
+				if (!is_ev_height_paused) {
+					mavlink_log_info(&_mavlink_log_pub, "AvesAID: Pausing External Vision height fusion");
+					events::send(events::ID("ekf2_ev_height_pausing"), events::Log::Info,
+						"AvesAID: Pausing External Vision height fusion");
+					is_ev_height_paused = true;
+				}
 				avesaid_status.flag_height_source_slam_enabled = false; // AvesAID: AvesAID_status
 				// _height_sensor_ref = HeightSensor::BARO;  // Ensure BARO is set in ALTCTL/STAB
 			} else {
 
 				// AvesAID: Log resume message when switching back to position mode
-			log_info_ev("AvesAID: External Vision height fusion");
+				if (is_ev_height_paused) {
+					mavlink_log_info(&_mavlink_log_pub, "AvesAID: Resuming External Vision height fusion");
+					events::send(events::ID("ekf2_ev_height_resuming"), events::Log::Info,
+						"AvesAID: Resuming External Vision height fusion");
+					is_ev_height_paused = false;
+				}
+
 				if (ev_reset) {
 
 					if (quality_sufficient) {
@@ -158,7 +172,7 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 						// EV has reset, but quality isn't sufficient
 						// we have no choice but to stop EV and try to resume once quality is acceptable
 						// stopEvHgtFusion();
-						log_info_ev("AvesAID: SLAM Quality Insufficient - Stopping SLAM");
+						// log_info_ev("AvesAID: SLAM Quality Insufficient - Stopping SLAM");
 						stopEvHgtFusion();
 
 						return;
@@ -232,7 +246,6 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 
 				} else {
 					ECL_INFO("starting %s fusion", AID_SRC_NAME);
-					log_info_ev("starting fusion, resetting state");
 					bias_est.setBias(-_state.pos(2) + measurement);
 				}
 
@@ -242,15 +255,6 @@ void Ekf::controlEvHeightFusion(const imuSample &imu_sample, const extVisionSamp
 				_control_status.flags.ev_hgt = true;
 
 		}
-	}
-}
-static const char* last_message_ev = nullptr;
-
-	// Helper function to log a message only when it's new
-void Ekf::log_info_ev(const char* message_ev) {
-	if (last_message_ev == nullptr || strcmp(last_message_ev, message_ev) != 0) {
-		mavlink_log_info(&_mavlink_log_pub, "%s", message_ev);
-		last_message_ev = message_ev;  // Update the last_message_ev
 	}
 }
 

@@ -71,7 +71,8 @@ void Ekf::controlExternalVisionFusion(const imuSample &imu_sample)
 
 		// AvesAID: Log when SLAM fusion starts
 		if (starting_conditions_passing && !ev_was_active) {
-			events::send(events::ID("ekf2_ev_slam_started"), events::Log::Info,
+			mavlink_log_info(&_mavlink_log_pub, "AvesAID: External Vision Fusion Started");
+			events::send(events::ID("ekf2_ev_data_started"), events::Log::Info,
 				"AvesAID: External Vision Fusion Started");
 			ev_was_active = true;
 		}
@@ -89,7 +90,7 @@ void Ekf::controlExternalVisionFusion(const imuSample &imu_sample)
 
 	} else if ((_control_status.flags.ev_pos || _control_status.flags.ev_vel || _control_status.flags.ev_yaw
 		    || _control_status.flags.ev_hgt)
-		   && isTimedOut(_ev_sample_prev.time_us, 2 * EV_MAX_INTERVAL)) {
+		   && isTimedOut(_ev_sample_prev.time_us, 5 * EV_MAX_INTERVAL)) {  // 5 * 200ms = 1000ms timeout to match SLAM health check
 
 		// Turn off EV fusion mode if no data has been received
 		stopEvPosFusion();
@@ -117,9 +118,11 @@ void Ekf::controlExternalVisionFusion(const imuSample &imu_sample)
 		_time_last_hor_vel_fuse = 0;        // Invalidate horizontal velocity fusion timestamp
 		_time_last_horizontal_aiding = 0;   // Trigger immediate deadreckon timeout (skips 5sec valid_timeout_max)
 
-		// AvesAID: event id=ekf2_ev_data_stopped_failsafe
-		events::send(events::ID("ekf2_ev_data_stopped_failsafe"), events::Log::Critical,
-			"AvesAID: External Vision data stopped - failsafe");
+		// AvesAID: Log SLAM stopped (both mavlink for old QGC and events for new)
+		mavlink_log_warning(&_mavlink_log_pub, "AvesAID: External Vision data stopped");
+		// AvesAID: Send event for new event logging system
+		events::send(events::ID("ekf2_ev_data_stopped"), events::Log::Warning,
+			"AvesAID: External Vision data stopped");
 	}
 }
 
