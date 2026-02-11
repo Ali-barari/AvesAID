@@ -90,7 +90,7 @@ void Ekf::controlExternalVisionFusion(const imuSample &imu_sample)
 
 	} else if ((_control_status.flags.ev_pos || _control_status.flags.ev_vel || _control_status.flags.ev_yaw
 		    || _control_status.flags.ev_hgt)
-		   && isTimedOut(_ev_sample_prev.time_us, 5 * EV_MAX_INTERVAL)) {  // 5 * 200ms = 1000ms timeout to match SLAM health check
+		   && isTimedOut(_ev_sample_prev.time_us, 3 * EV_MAX_INTERVAL)) {  // 3 * 200ms = 600ms timeout to match SLAM health check
 
 		// Turn off EV fusion mode if no data has been received
 		stopEvPosFusion();
