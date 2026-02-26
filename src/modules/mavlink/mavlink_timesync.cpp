@@ -87,10 +87,13 @@ MavlinkTimesync::handle_message(const mavlink_message_t *msg)
 			px4_clock_gettime(CLOCK_REALTIME, &tv);
 
 			// date -d @1234567890: Sat Feb 14 02:31:30 MSK 2009
-			bool onb_unix_valid = (unsigned long long)tv.tv_sec > PX4_EPOCH_SECS;
+			// AvesAID: commented out - onboard clock may be stale (e.g. wrong date) yet still pass the epoch check, blocking offboard sync
+			// bool onb_unix_valid = (unsigned long long)tv.tv_sec > PX4_EPOCH_SECS;
 			bool ofb_unix_valid = time.time_unix_usec > PX4_EPOCH_SECS * 1000000ULL;
 
-			if (!onb_unix_valid && ofb_unix_valid) {
+			// AvesAID: was `if (!onb_unix_valid && ofb_unix_valid)` - force accept offboard time whenever it is valid
+			// if (!onb_unix_valid && ofb_unix_valid) {
+			if (ofb_unix_valid) {
 				tv.tv_sec = time.time_unix_usec / 1000000ULL;
 				tv.tv_nsec = (time.time_unix_usec % 1000000ULL) * 1000ULL;
 
