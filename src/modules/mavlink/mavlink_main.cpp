@@ -481,6 +481,25 @@ Mavlink::forward_message(const mavlink_message_t *msg, Mavlink *self)
 		return;
 	}
 
+	// AvesAID: SKYRON custom commands (>=40000) are always forwarded to all instances.
+	// component_was_seen is bypassed because the GCS targets comp=191 but MAVROS registers as comp=1.
+	if (msg->msgid == MAVLINK_MSG_ID_COMMAND_LONG) {
+		mavlink_command_long_t cmd;
+		mavlink_msg_command_long_decode(msg, &cmd);
+		if (cmd.command >= 40000) {
+			LockGuard lg{mavlink_module_mutex};
+			for (Mavlink *inst : mavlink_module_instances) {
+				if (inst && (inst != self) && (inst->get_forwarding_on())) {
+					inst->pass_message(msg);
+				}
+			}
+			char _buf[48];
+			snprintf(_buf, sizeof(_buf), "AvesAID: CMD %u forwarded", (unsigned)cmd.command);
+			self->send_statustext_info(_buf);
+			return;
+		}
+	}
+
 	LockGuard lg{mavlink_module_mutex};
 
 	for (Mavlink *inst : mavlink_module_instances) {

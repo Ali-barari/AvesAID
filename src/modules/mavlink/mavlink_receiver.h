@@ -278,7 +278,7 @@ private:
 
 	orb_advert_t _mavlink_log_pub{nullptr};
 
-	static constexpr unsigned MAX_REMOTE_COMPONENTS{16};
+	static constexpr unsigned MAX_REMOTE_COMPONENTS{32}; // AvesAID: increased from 16 - OBC publishes more components since submodule update
 	struct ComponentState {
 		uint32_t received_messages{0};
 		uint32_t missed_messages{0};
