@@ -168,6 +168,9 @@ else
 	bmp388 -X start
 fi
 
+# AvesAID: External BMP388 Barometer
+bmp388 -X -b 2 -a 0x77 start
+
 # Baro on I2C3
 ms5611 -X start
 
