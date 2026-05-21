@@ -168,8 +168,15 @@ else
 	bmp388 -X start
 fi
 
-# AvesAID: External BMP388 Barometer
-bmp388 -X -b 2 -a 0x77 start
+# AvesAID: External BMP388 Barometer (instance 2 - highest priority)
+bmp388 -X -b 3 -a 0x77 start
+# AvesAID baro priority config - device IDs are deterministic from bus+address
+param set-default CAL_BARO0_ID 12084257
+param set-default CAL_BARO0_PRIO -1
+param set-default CAL_BARO1_ID 6780433
+param set-default CAL_BARO1_PRIO 75
+param set-default CAL_BARO2_ID 6780697
+param set-default CAL_BARO2_PRIO 100
 
 # Baro on I2C3
 ms5611 -X start
