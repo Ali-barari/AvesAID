@@ -1,6 +1,6 @@
 ############################################################################
 #
-#   Copyright (c) 2015-2020 PX4 Development Team. All rights reserved.
+#   Copyright (c) 2024 Avestec. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,23 +31,6 @@
 #
 ############################################################################
 
-add_subdirectory(GotoControl)
-add_subdirectory(PositionControl)
-add_subdirectory(Takeoff)
+px4_add_library(CollisionAvoidance3D CollisionAvoidance3D.cpp)
 
-px4_add_module(
-	MODULE modules__mc_pos_control
-	MAIN mc_pos_control
-	COMPILE_FLAGS
-	SRCS
-		MulticopterPositionControl.cpp
-		MulticopterPositionControl.hpp
-	DEPENDS
-		CollisionAvoidance3D
-		GotoControl
-		PositionControl
-		Takeoff
-		controllib
-		geo
-		SlewRate
-	)
+px4_add_functional_gtest(SRC CollisionAvoidance3DTest.cpp LINKLIBS CollisionAvoidance3D)
