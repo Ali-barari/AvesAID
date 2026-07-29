@@ -587,6 +587,26 @@ void MulticopterPositionControl::Run()
 				math::min(speed_up, _param_mpc_z_vel_max_up.get()), // takeoff ramp starts with negative velocity limit
 				math::max(speed_down, 0.f));
 
+			// Iron Sphere 3D collision avoidance: constrain the velocity/yaw-rate
+			// setpoint just before it enters the position controller. A single call
+			// site covers POSCTL / OFFBOARD / AUTO (gated by CA3D_MODE_MASK).
+			// Passthrough when CA3D_EN=0, disarmed, landed, or the mode isn't gated.
+			if (_collision_avoidance_3d.isActive()) {
+				vehicle_attitude_s vehicle_attitude;
+
+				if (_vehicle_attitude_sub.copy(&vehicle_attitude)) {
+					const matrix::Quatf q_att(vehicle_attitude.q);
+					matrix::Vector3f vel_sp(_setpoint.velocity);
+					float yawspeed_sp = _setpoint.yawspeed;
+
+					_collision_avoidance_3d.modifySetpoint3D(vel_sp, yawspeed_sp, q_att,
+							_vehicle_control_mode, _vehicle_land_detected.landed);
+
+					vel_sp.copyTo(_setpoint.velocity);
+					_setpoint.yawspeed = yawspeed_sp;
+				}
+			}
+
 			_control.setInputSetpoint(_setpoint);
 
 			// update states

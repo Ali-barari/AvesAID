@@ -41,6 +41,7 @@
 #include "Takeoff/Takeoff.hpp"
 #include "GotoControl/GotoControl.hpp"
 
+#include <lib/collision_avoidance_3d/CollisionAvoidance3D.hpp> // Iron Sphere native 3D collision avoidance
 #include <drivers/drv_hrt.h>
 #include <lib/mathlib/math/filter/AlphaFilter.hpp>
 #include <lib/mathlib/math/filter/NotchFilter.hpp>
@@ -61,6 +62,7 @@
 #include <uORB/topics/hover_thrust_estimate.h>
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/trajectory_setpoint.h>
+#include <uORB/topics/vehicle_attitude.h>
 #include <uORB/topics/vehicle_attitude_setpoint.h>
 #include <uORB/topics/vehicle_constraints.h>
 #include <uORB/topics/vehicle_control_mode.h>
@@ -112,6 +114,7 @@ private:
 	uORB::Subscription _vehicle_constraints_sub{ORB_ID(vehicle_constraints)};
 	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)};
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
+	uORB::Subscription _vehicle_attitude_sub{ORB_ID(vehicle_attitude)}; // for CA3D NED<->FRD rotation
 	uORB::Subscription _avesaid_status_sub{ORB_ID(avesaid_status)}; //AvesAID: AVESAID_STATUS
 
 
@@ -216,6 +219,7 @@ private:
 
 	GotoControl _goto_control; ///< class for handling smooth goto position setpoints
 	PositionControl _control; ///< class for core PID position control
+	CollisionAvoidance3D _collision_avoidance_3d{this}; ///< Iron Sphere native 3D collision avoidance
 
 	hrt_abstime _last_warn{0}; /**< timer when the last warn message was sent out */
 
