@@ -65,6 +65,7 @@ definitions:
 
     - step: &deploy-avesaid
         name: Deploy AvesAID to AWS
+        oidc: true
         deployment: production
         script:
           - echo "Installing required tools for deployment..."
@@ -73,15 +74,9 @@ definitions:
           - echo "Setting up deployment scripts..."
           - chmod +x scripts/deployment/*.sh
           - echo "Setting up environment variables and deploying..."
+          - source scripts/deployment/oidc-login.sh avestec-cicd-avesaid
           - |
-            export AWS_ACCESS_KEY_ID="$MANAGEMENT_AWS_ACCESS_KEY_ID"
-            export AWS_SECRET_ACCESS_KEY="$MANAGEMENT_AWS_SECRET_ACCESS_KEY"
-            export AWS_DEFAULT_REGION="$AWS_REGION"
             export AWS_ACCOUNT_ID="$AWS_ACCOUNT_ID"
-            export AWS_REGION="$AWS_REGION"
-            export CROSS_ACCOUNT_ROLE_ARN="$CROSS_ACCOUNT_ROLE_ARN"
-            export CROSS_ACCOUNT_EXTERNAL_ID="$CROSS_ACCOUNT_EXTERNAL_ID"
-            export CROSS_ACCOUNT_SESSION_NAME="AvestecFlightControllerDeployment"
             export UPDATE_API_URL="$UPDATE_API_URL"
             export UPDATE_API_KEY="$UPDATE_API_KEY"
             echo "Generating version metadata..."
@@ -101,6 +96,7 @@ definitions:
 
     - step: &mark-faulty-version
         name: Mark Version as Faulty
+        oidc: true
         script:
           - echo "Faulty version marking initiated"
           - |
@@ -112,14 +108,9 @@ definitions:
           - apt-get update && apt-get install -y awscli jq
           - echo "Setting up deployment scripts..."
           - chmod +x scripts/deployment/*.sh
+          - source scripts/deployment/oidc-login.sh avestec-cicd-avesaid
           - |
-            export AWS_ACCESS_KEY_ID="$MANAGEMENT_AWS_ACCESS_KEY_ID"
-            export AWS_SECRET_ACCESS_KEY="$MANAGEMENT_AWS_SECRET_ACCESS_KEY"
-            export AWS_DEFAULT_REGION="$AWS_REGION"
-            export AWS_REGION="${AWS_REGION:-ca-central-1}"
-            export CROSS_ACCOUNT_ROLE_ARN="$CROSS_ACCOUNT_ROLE_ARN"
-            export CROSS_ACCOUNT_EXTERNAL_ID="$CROSS_ACCOUNT_EXTERNAL_ID"
-            export CROSS_ACCOUNT_SESSION_NAME="AvesAIDFaultyMarking"
+            export AWS_ACCOUNT_ID="$AWS_ACCOUNT_ID"
             export ENVIRONMENT="${ENVIRONMENT:-prod}"
             echo "Executing mark-faulty-version script..."
             ./scripts/deployment/mark-faulty-version.sh

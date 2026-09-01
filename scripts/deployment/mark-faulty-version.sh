@@ -10,8 +10,10 @@ S3_BUCKET="avestec-prod-update-binaries"
 # Validate required environment variables
 : "${BITBUCKET_TAG:?Error: BITBUCKET_TAG not set}"
 : "${AWS_REGION:?Error: AWS_REGION not set}"
-: "${CROSS_ACCOUNT_ROLE_ARN:?Error: CROSS_ACCOUNT_ROLE_ARN not set}"
-: "${CROSS_ACCOUNT_EXTERNAL_ID:?Error: CROSS_ACCOUNT_EXTERNAL_ID not set}"
+if [[ "${SKIP_ROLE_ASSUMPTION:-false}" != "true" ]]; then
+    : "${CROSS_ACCOUNT_ROLE_ARN:?Error: CROSS_ACCOUNT_ROLE_ARN not set}"
+    : "${CROSS_ACCOUNT_EXTERNAL_ID:?Error: CROSS_ACCOUNT_EXTERNAL_ID not set}"
+fi
 
 # Extract version from tag: "faulty/v1.5.4-1.3.5" → "1.5.4-1.3.5"
 # Supports both simple (1.5.3) and compound (1.5.4-1.3.5) version formats
