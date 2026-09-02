@@ -119,3 +119,19 @@ parameters:
       default: 0.0
       unit: m
       decimal: 3
+    OBC_EV_MAXJUMP:
+      description:
+        short: Maximum per-axis position jump allowed in External Vision pose data
+        long: 'External vision (EV) pose input comes from the onboard companion
+          computer (SLAM). This threshold is not enforced by EKF2 itself - it is
+          read live by the companion computer''s own pose validation, which rejects
+          an EV measurement and stops publishing vision_pose when any single axis
+          moves more than this amount between consecutive SLAM messages. Exposed
+          here so it can be tuned from the ground station during flight testing
+          without redeploying companion software.'
+      type: float
+      default: 0.25
+      min: 0.05
+      max: 0.6
+      unit: m
+      decimal: 2

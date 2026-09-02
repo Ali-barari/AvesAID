@@ -655,6 +655,15 @@ private:
 		(ParamExtFloat<px4::params::EKF2_EV_POS_Z>)
 		_param_ekf2_ev_pos_z, ///< Z position of VI sensor focal point in body frame (m)
 #endif // CONFIG_EKF2_EXTERNAL_VISION
+
+		// Not read by EKF2 itself - the onboard companion computer's own EV pose
+		// validation reads this live (via mavros) to gate SLAM position jumps
+		// before they reach vision_pose. Declared as a member here purely so the
+		// linker retains it; a YAML-defined param with no C++ reference anywhere
+		// gets dead-code-eliminated from the runtime parameter table even though
+		// it still shows up in generated headers and QGC metadata.
+		(ParamFloat<px4::params::OBC_EV_MAXJUMP>)
+		_param_obc_ev_maxjump, ///< max per-axis EV position jump (m) before the companion computer rejects the measurement
 #if defined(CONFIG_EKF2_OPTICAL_FLOW)
 		// optical flow fusion
 		(ParamExtInt<px4::params::EKF2_OF_CTRL>)
