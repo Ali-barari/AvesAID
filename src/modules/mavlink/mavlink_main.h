@@ -672,6 +672,9 @@ private:
 	perf_counter_t _send_byte_error_perf{perf_alloc(PC_COUNT, MODULE_NAME": send_bytes error")};           /**< send bytes error count */
 	perf_counter_t _forwarding_error_perf{perf_alloc(PC_COUNT, MODULE_NAME": forwarding error")};           /**< forwarding messages error count */
 
+	hrt_abstime		_last_vision_forward{0};	/**< AvesAID: last VISION_POSITION_ESTIMATE forwarded to this (non-USB) link */
+	hrt_abstime		_last_timesync_forward{0};	/**< AvesAID: last TIMESYNC forwarded to this (non-USB) link */
+
 	void			mavlink_update_parameters();
 
 	int mavlink_open_uart(const int baudrate = DEFAULT_BAUD_RATE,

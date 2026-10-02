@@ -509,6 +509,29 @@ Mavlink::forward_message(const mavlink_message_t *msg, Mavlink *self)
 				// PX4_INFO("Skipping VISION_POSITION_ESTIMATE for TELEM3 (MAV_2)");
 				continue; // Skip forwarding for TELEM3
 			}
+
+			// AvesAID: the radio links get the onboard computer's EKF traffic at a reduced rate; the
+			// FC itself still receives it at full rate on USB. At 57600 baud the forwarded 25 Hz vision
+			// pose and 20 Hz TIMESYNC (mavros' requests + its replies to PX4) filled ~70% of TELEM1.
+			if (!inst->_is_usb_uart) {
+				const hrt_abstime now = hrt_absolute_time();
+
+				if (msg->msgid == MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE) {
+					if (now - inst->_last_vision_forward < 100_ms) {
+						continue; // 10 Hz is enough to draw the vehicle on the tablet
+					}
+
+					inst->_last_vision_forward = now;
+
+				} else if (msg->msgid == MAVLINK_MSG_ID_TIMESYNC) {
+					if (now - inst->_last_timesync_forward < 1_s) {
+						continue; // 1 Hz on the radio links
+					}
+
+					inst->_last_timesync_forward = now;
+				}
+			}
+
 			// Pass message only if target component was seen before
 			if (inst->_receiver.component_was_seen(target_system_id, target_component_id)) {
 				inst->pass_message(msg);
